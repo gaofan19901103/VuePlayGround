@@ -75,14 +75,13 @@
 
             .message-title{
                 font-size: 12px;
-                color: #00716b;
+                color: #00afaf;
                 //margin-bottom: 24px;
                 width: calc(100% - 40px);
                 overflow: hidden;
                 white-space: nowrap;
                 text-overflow: ellipsis;
-                font-weight: 800;
-                filter: brightness(120%);
+                //filter: brightness(120%);
             }
 
             .message-content-wrapper{

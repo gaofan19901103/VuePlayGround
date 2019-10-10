@@ -21,6 +21,8 @@
 </script>
 
 <style>
+    @import './main.less';
+
     #app {
         font-size: 18px;
         font-family: 'Roboto', sans-serif;

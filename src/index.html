@@ -3,32 +3,19 @@
     <title>Vue Hello World</title>
   </head>
   <body>
-    <div id="app" style="display: flex; width: 520px; justify-content: center; flex-wrap: wrap; background-color: black;">
-      <div style="    width: 100%;display: flex;justify-content: center;margin-bottom: 16px;">
-        <container message-title="MY PROTOFOLIO 2"
-        circle-number="67"
-        circle-errors="5"></container>
-        <container message-title="Yield"
-        circle-number="23"
-        circle-errors="11"></container>
-      </div>
-
-
-      <container message-title="MY PROTOFOLIO verererereer long"
-                message-sum="SUM(M)"
-                message-notion="NOTIONAL"
-                message-number="123"
-                circle-number="99"
-                circle-title="ENTRIES"
-                circle-warnings="20"> </container>
-      <container message-title="MY PROTOFOLIO 2"
-                  message-sum="SUM(M)"
-                  message-notion="NOTIONAL"
-                  message-number="123"
-                  circle-number="67"
-                  circle-title="ENTRIES"
-                  circle-errors="5"></container>
-      <container message-title="MY PROTOFOLIO verererereer long"
+    <div id="app" >
+      <div style="display: flex; width: 520px; justify-content: center; flex-wrap: wrap; background-color: black;">
+        <div style="width: 100%;display: flex;justify-content: center;margin-bottom: 16px;">
+          <container message-title="MY PROTOFOLIO 2"
+          circle-number="67"
+          circle-errors="5"></container>
+          <container message-title="Yield"
+          circle-number="23"
+          circle-errors="11"></container>
+        </div>
+  
+  
+        <container message-title="MY PROTOFOLIO verererereer long"
                   message-sum="SUM(M)"
                   message-notion="NOTIONAL"
                   message-number="123"
@@ -42,7 +29,7 @@
                     circle-number="67"
                     circle-title="ENTRIES"
                     circle-errors="5"></container>
-                    <container message-title="MY PROTOFOLIO verererereer long"
+        <container message-title="MY PROTOFOLIO verererereer long"
                     message-sum="SUM(M)"
                     message-notion="NOTIONAL"
                     message-number="123"
@@ -56,7 +43,46 @@
                       circle-number="67"
                       circle-title="ENTRIES"
                       circle-errors="5"></container>
+                      <container message-title="MY PROTOFOLIO verererereer long"
+                      message-sum="SUM(M)"
+                      message-notion="NOTIONAL"
+                      message-number="123"
+                      circle-number="99"
+                      circle-title="ENTRIES"
+                      circle-warnings="20"> </container>
+            <container message-title="MY PROTOFOLIO 2"
+                        message-sum="SUM(M)"
+                        message-notion="NOTIONAL"
+                        message-number="123"
+                        circle-number="67"
+                        circle-title="ENTRIES"
+                        circle-errors="5"></container>
+      </div>
+      
+      <div>
+        <ul>
+          <li>A</li>
+          <li>B</li>
+          <li>C</li>
+        </ul>
 
+        <div  v-highlight>
+          A Content
+        </div>
+
+        <div>
+          B Content
+        </div>
+
+        <div>
+          C Content
+        </div>
+
+      </div>
+
+      <!-- <div v-component="app">
+
+      </div> -->
     </div>
   </body>
 </html>
