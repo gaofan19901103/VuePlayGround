@@ -6,7 +6,7 @@
 </template>
 
 <script>
-    import cc from './container.vue';
+    import cc from './reset-submission-view.vue';
 
     export default {
         data() {
@@ -21,7 +21,7 @@
 </script>
 
 <style>
-    @import './main.less';
+    @import '../main.less';
 
     #app {
         font-size: 18px;

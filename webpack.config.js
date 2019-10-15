@@ -8,7 +8,7 @@ module.exports = {
       { test: /\.js$/, use: 'babel-loader', exclude: /node_modules/ },
       { test: /\.vue$/, use: 'vue-loader' },
       { test: /\.(le|c)ss$/, use: ['vue-style-loader', 'css-loader', 'less-loader']},
-      { test: /\.(woff|woff2|eot|ttf|otf)$/, use: 'file-loader' },
+      { test: /\.(woff|woff2|eot|ttf|otf)$/, use: 'file-loader' }
     ]
   },
   resolve: {
@@ -23,5 +23,6 @@ module.exports = {
     }),
     new VueLoaderPlugin(),
   ],
+
   devtool: 'source-map'
 };

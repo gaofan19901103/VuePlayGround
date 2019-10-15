@@ -1,8 +1,8 @@
 import Vue from 'vue';
-import App from './App.vue';
-import container from './container.vue'; 
+import App from './components/App.vue';
+import container from './components/reset-submission-view.vue'; 
 
-require('./test-directive.js');
+require('./directives/test-directive.js');
 
 Vue.component('app', App);
 Vue.component('container', container);
