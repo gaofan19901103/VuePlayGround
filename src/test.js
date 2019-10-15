@@ -1,6 +1,12 @@
+function importAll(r, specFiles) {
+    if (specFiles) {
+        r.keys().forEach(r);
+    } else {
+        r.keys().filter(k => !/\.spec/.test(k)).forEach(r);
+    }
+} 
+
 require('./main.js');
-import Vue from 'vue';
-import container from './container.vue'; 
 
 describe('Test',function(){
     beforeEach(function(){
@@ -13,10 +19,4 @@ describe('Test',function(){
     });
 });
 
-
-describe('container component', () => {
-
-    it('has a created hook', () => {
-      expect(typeof container.data).toBe('function')
-    });
-});
+importAll(require.context('./components', true, /\.spec.js$/), true);
