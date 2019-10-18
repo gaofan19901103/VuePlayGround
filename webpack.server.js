@@ -1,18 +1,10 @@
 const HtmlWebpackPlugin = require('html-webpack-plugin');
 const VueLoaderPlugin = require('vue-loader/lib/plugin');
-const MiniCssExtractPlugin = require("mini-css-extract-plugin");
-const WebpackCleanPlugin = require('webpack-clean');
-const path = require('path');
 
 module.exports = {
   entry: {
     app: './src/main.js',
     style: './src/style.js'
-  },
-  output:{
-    path: path.resolve(__dirname, 'dist'),
-    filename: '[name].bundle.js',
-    chunkFilename: '[name].bundle.js',
   },
   module: {
     rules: [
@@ -21,7 +13,6 @@ module.exports = {
       { 
         test: /\.(le|c)ss$/, 
         use: [
-          {loader: MiniCssExtractPlugin.loader},
           // 'vue-style-loader', 
           'css-loader',
           'less-loader']
@@ -40,14 +31,6 @@ module.exports = {
       template: './src/index.html',
     }),
     new VueLoaderPlugin(),
-    new MiniCssExtractPlugin({
-      filename: "[name].bundle.css",
-      chunkFilename: "[name].bundle.css"
-    }),
-    new WebpackCleanPlugin([
-      // 'dist/app.bundle.css',
-      // 'dist/style.bundle.js'
-    ])
   ],
 
   devtool: 'source-map'
