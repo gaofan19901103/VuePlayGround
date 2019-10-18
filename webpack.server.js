@@ -13,7 +13,7 @@ module.exports = {
       { 
         test: /\.(le|c)ss$/, 
         use: [
-          // 'vue-style-loader', 
+          'vue-style-loader', 
           'css-loader',
           'less-loader']
       },
