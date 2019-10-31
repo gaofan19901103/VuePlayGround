@@ -18,6 +18,8 @@
             <div class="circle-warnings" v-if="circleWarnings"><span>{{circleWarnings}}</span></div>
             <div class="circle-errors" v-if="circleErrors"><span>{{circleErrors}}</span></div>
         </div>
+        <div class="select-button">✗</div> 
+        <!-- ✗ -->
   </div>
 </template>
 
@@ -63,7 +65,7 @@
     // }
 
     .container {
-
+        position: relative;
         @circle-radius: 65px;
         @circle-radius-big: 90px;
         // margin-top: 15px;
@@ -190,6 +192,21 @@
         .circle.big{
             height: @circle-radius-big;
             width: @circle-radius-big;
+        }
+
+        .select-button{
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            height: 15px;
+            width: 15px;
+            color: red;
+            position: absolute;
+            top: -5px;
+            left: 0;
+            border: 1px solid red;
+            border-radius: 50%;
+            font-size: 12px;
         }
     }
 </style>
