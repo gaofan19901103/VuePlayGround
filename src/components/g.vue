@@ -41,7 +41,7 @@
             scroller.style.top = 0;
             scroller.style.left = 0;
             scroller.style.width = "1px";
-            scroller.style.height = 3000 + "px";
+            scroller.style.height = 30000 + "px";
             
             this.$el.append(scroller);
             
@@ -50,15 +50,16 @@
             let lastPosition = 0;
 
             this.$el.onscroll = (function(e){
-                console.log('scroll');
+                console.log(`scroll: ${e.target.scrollTop}`);
                
 
                 if(Math.abs(e.target.scrollTop -  lastPosition) > 10 * 30){
                     console.log('scroll render');
-                     lastPosition = e.target.scrollTop;
- vessel.style.top = e.target.scrollTop + 'px';
-                     this.startIndex = Math.floor(e.target.scrollTop / 30);
-                     
+                    lastPosition = e.target.scrollTop;
+
+                    this.startIndex = Math.floor(e.target.scrollTop / 30);
+                    this.startIndex = this.startIndex  - 5 < 0 ? 0 : this.startIndex  - 5;
+                    vessel.style.top = (e.target.scrollTop - 5 * 30)  + 'px';
                     //this.weight = this.weight + 1;               
                 }
             }).bind(this);
