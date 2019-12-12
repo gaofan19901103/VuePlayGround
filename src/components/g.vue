@@ -1,12 +1,13 @@
 <template>
   <div class="grid">
-      
-      <div class="row" v-for="(item, index) in scrollList" v-bind:key="item.key">
-          <div class="column"><span>{{index}} | </span></div>
-          <div class="column"><span>{{item.rt}}</span></div>
-          <div class="column"><span>{{item.vt}}</span></div>
-          <div class="column"><span>{{item.currency}}</span></div>
-          <div class="column"><span>{{item.status}}</span></div>
+      <div id="vessel">
+        <div  class="row" v-for="(item) in scrollList" v-bind:key="item.key">
+            <div class="column"><span>{{item.id}} | </span></div>
+            <div class="column"><span>{{item.rt}}</span></div>
+            <div class="column"><span>{{item.vt}}</span></div>
+            <div class="column"><span>{{item.currency}}</span></div>
+            <div class="column"><span>{{item.status}}</span></div>
+        </div>
       </div>
   </div>
 </template>
@@ -43,16 +44,22 @@
             scroller.style.height = 3000 + "px";
             
             this.$el.append(scroller);
+            
+            var vessel = document.getElementById('vessel');
 
             let lastPosition = 0;
 
             this.$el.onscroll = (function(e){
                 console.log('scroll');
+               
 
                 if(Math.abs(e.target.scrollTop -  lastPosition) > 10 * 30){
+                    console.log('scroll render');
                      lastPosition = e.target.scrollTop;
-                    // this.startIndex = Math.floor(e.target.scrollTop / 30);
-                    this.weight = this.weight + 1;               
+ vessel.style.top = e.target.scrollTop + 'px';
+                     this.startIndex = Math.floor(e.target.scrollTop / 30);
+                     
+                    //this.weight = this.weight + 1;               
                 }
             }).bind(this);
 
@@ -76,7 +83,8 @@
         },
         computed:{         
             scrollList: function(){
-                 return this.source.slice(this.startIndex, 10 * this.weight);
+                 //return this.source.slice(this.startIndex, 10 * this.weight);
+                 return this.source.slice(this.startIndex, this.startIndex + 20);
             }        
         },
         watch:{
@@ -111,5 +119,9 @@
         //     margin: 1px;
         //     padding: 4px 8px;
         // }
+
+        #vessel{
+            position: absolute;
+        }
     }
 </style>
