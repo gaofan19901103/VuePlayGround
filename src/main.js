@@ -11,6 +11,16 @@ Vue.component('container', container);
 Vue.component('grid', g);
 Vue.component('slider', slider);
 
+var list = [];
+
+for(let i = 0; i < 1000; i ++){
+    list.push({id: i, rt: '01-AUG-19', vt:'02-AUG-19', currency: 'USD', product:'FRA', tenor:'3M', status:'Open'});
+}
+
 new Vue({
-  el: '#app'
+  el: '#app',
+  data:{
+    testString: 'hello w',
+    listSource: list
+  }
 });

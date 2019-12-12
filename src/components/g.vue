@@ -44,32 +44,43 @@
             
             this.$el.append(scroller);
 
+            let lastPosition = 0;
+
+            this.$el.onscroll = (function(e){
+                console.log('scroll');
+
+                if(Math.abs(e.target.scrollTop -  lastPosition) > 10 * 30){
+                     lastPosition = e.target.scrollTop;
+                    // this.startIndex = Math.floor(e.target.scrollTop / 30);
+                    this.weight = this.weight + 1;               
+                }
+            }).bind(this);
+
             let x = 0;
         },
+        updated:function(){
+            console.log(this.scrollList);
+        },
         props:{
-
-        },
-        data() {
-            return {
-                source: [
-                    {id: '1', rt: '01-AUG-19', vt:'02-AUG-19', currency: 'USD', product:'FRA', tenor:'3M', status:'Open'}
-                ]
-            };
-        },
-        computed:{
-            myList: function(){
-                var list = [];
-
-                for(let i = 0; i < 1000; i ++){
-                    list.push({id: i, rt: '01-AUG-19', vt:'02-AUG-19', currency: 'USD', product:'FRA', tenor:'3M', status:'Open'});
-                }
-
-                return list;
-            },
-            scrollList: function(){
-                let index = 300 / 30;
-                return this.myList.slice(0, index);
+            source: {
+                type: Array,
+                default: null
             }
+        },
+        data:function(){
+            return{
+            startIndex: 0,
+            bufferItems: 10,
+            weight: 1
+            }   
+        },
+        computed:{         
+            scrollList: function(){
+                 return this.source.slice(this.startIndex, 10 * this.weight);
+            }        
+        },
+        watch:{
+           
         }
     };
 </script>
