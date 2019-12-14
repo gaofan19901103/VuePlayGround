@@ -49,21 +49,37 @@
 
             let lastPosition = 0;
 
+            // this.$el.onscroll = (function(e){
+            //     console.log(`scroll: ${e.target.scrollTop}`);
+               
+
+            //     if(Math.abs(e.target.scrollTop -  lastPosition) > 10 * 30){
+            //         console.log('scroll render');
+            //         lastPosition = e.target.scrollTop;
+
+            //         this.startIndex = Math.floor(e.target.scrollTop / 30);
+            //         this.startIndex = this.startIndex  - 10 < 0 ? 0 : this.startIndex  - 10;
+            //         vessel.style.top = (e.target.scrollTop - 10 * 30) < 0 ? 0 : (e.target.scrollTop - 10 * 30)  + 'px';
+            //         //this.weight = this.weight + 1;               
+            //     }
+            // }).bind(this);
+
+
             this.$el.onscroll = (function(e){
                 console.log(`scroll: ${e.target.scrollTop}`);
                
 
-                if(Math.abs(e.target.scrollTop -  lastPosition) > 10 * 30){
+                if(Math.abs(e.target.scrollTop -  lastPosition) > this.bufferItems * this.itemHeight){
                     console.log('scroll render');
                     lastPosition = e.target.scrollTop;
 
-                    this.startIndex = Math.floor(e.target.scrollTop / 30);
-                    this.startIndex = this.startIndex  - 5 < 0 ? 0 : this.startIndex  - 5;
-                    vessel.style.top = (e.target.scrollTop - 5 * 30)  + 'px';
+                    this.startIndex = Math.floor(e.target.scrollTop / this.itemHeight);
+                    this.startIndex = this.startIndex  - this.bufferItems < 0 ? 0 : this.startIndex  - this.bufferItems;
+                    vessel.style.top = (e.target.scrollTop - this.bufferItems * this.itemHeight) < 0 ? 0 : (e.target.scrollTop - this.bufferItems * this.itemHeight)  + 'px';
                     //this.weight = this.weight + 1;               
                 }
             }).bind(this);
-
+            
             let x = 0;
         },
         updated:function(){
@@ -78,14 +94,15 @@
         data:function(){
             return{
             startIndex: 0,
-            bufferItems: 10,
+            bufferItems: 5,
+            itemHeight: 30,
             weight: 1
             }   
         },
         computed:{         
             scrollList: function(){
                  //return this.source.slice(this.startIndex, 10 * this.weight);
-                 return this.source.slice(this.startIndex, this.startIndex + 20);
+                 return this.source.slice(this.startIndex, this.startIndex + 10 + this.bufferItems * 2);
             }        
         },
         watch:{
