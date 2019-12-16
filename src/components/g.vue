@@ -1,15 +1,14 @@
 <template>
-  <div class="grid">
-      <div id="vessel">
-        <div  class="row" v-for="(item) in scrollList" v-bind:key="item.key">
-            <div class="column cell"><span>{{item.id}} | </span></div>
-            <div class="column cell" v-on:click="print('hi')"><span>{{item.rt}}</span></div>
-            <div class="column cell"><span>{{item.vt}}</span></div>
-            <div class="column cell"><span>{{item.currency}}</span></div>
-            <div class="column cell"><span>{{item.status}}</span></div>
+  <div>
+    <div>something else you want to put here</div>
+    <div class="grid">
+        <div class="vessel">
+            <div  class="row" v-for="(item, row_index) in scrollList" v-bind:key="item.key">
+                <div v-for="(col, col_index) in Object.keys(item)" v-bind:key="col" class="column cell" :data-col="col_index" :data-row="row_index" v-on:click="test('gf')">{{item[col]}}</div>
+            </div>
         </div>
-      </div>
-      <canvas id="canvas"></canvas>
+        <canvas class="canvas"></canvas>
+    </div>
   </div>
 </template>
 
@@ -36,6 +35,14 @@
             let x = 0;
         },
         mounted: function(){
+            let that = this;
+
+            let canvas = this.$el.querySelector('canvas');
+            canvas.height = this.$el.querySelector('.grid').clientHeight;
+            canvas.width = this.$el.querySelector('.grid').clientWidth;
+            ctx = canvas.getContext('2d');
+
+
             let scroller = document.createElement("div");
             scroller.style.opacity = 0;
             scroller.style.position = "absolute";
@@ -44,9 +51,9 @@
             scroller.style.width = "1px";
             scroller.style.height = 30000 + "px";
             
-            this.$el.append(scroller);
+            this.$el.querySelector('.grid').append(scroller);
             
-            var vessel = document.getElementById('vessel');
+            var vessel = this.$el.querySelector('.vessel');
 
             let lastPosition = 0;
 
@@ -66,7 +73,7 @@
             // }).bind(this);
 
 
-            this.$el.onscroll = (function(e){
+            this.$el.querySelector('.grid').onscroll = (function(e){
                 console.log(`scroll: ${e.target.scrollTop}`);
                
 
@@ -80,12 +87,72 @@
                     //this.weight = this.weight + 1;               
                 }
             }).bind(this);
-            
-            let x = 0;
-            const canvas = document.getElementById('canvas');
-            ctx = canvas.getContext('2d');
-            ctx.rect(10, 20, 150, 100);
-            ctx.fill();
+                    
+            this.draw(10, 20, 150, 100);
+
+            function dragElement(elmnt) {
+                var pos1 = 0, pos2 = 0, pos3 = 0, pos4 = 0;
+                var r, c;
+
+                elmnt.onmousedown = dragMouseDown;
+                
+                function dragMouseDown(e) {
+                    e = e || window.event;
+                    e.preventDefault();
+                    // get the mouse cursor position at startup:
+                    pos3 = e.clientX;
+                    pos4 = e.clientY;
+                    
+                    r = null;
+                    c = null;
+                    that.selections = [];
+
+                    document.onmouseup = closeDragElement;
+                    // call a function whenever the cursor moves:
+                    document.onmousemove = elementDrag;
+                }
+
+                function elementDrag(e) {
+                    e = e || window.event;
+                    e.preventDefault();
+                    // calculate the new cursor position:
+                    pos1 = pos3 - e.clientX;
+                    pos2 = pos4 - e.clientY;
+                    pos3 = e.clientX;
+                    pos4 = e.clientY;
+                    // set the element's new position:
+                    // elmnt.style.top = (elmnt.offsetTop - pos2) + "px";
+                    // elmnt.style.left = (elmnt.offsetLeft - pos1) + "px";
+
+                    //console.log(e.offsetX,e.offsetY);
+                    //console.log(e.target);
+
+                    let dataAtt = e.target.dataset;                
+
+                    if(r != dataAtt.row || c != dataAtt.col){
+                        console.log(e.target);
+                        
+                        r = dataAtt.row;
+                        c = dataAtt.col;
+                        if(!that.selections[0])
+                            that.selections[0] = {start: {x: r, y: c}};
+
+                        
+                    }
+                }
+
+                function closeDragElement(e) {
+                    // stop moving when mouse button is released:
+                    document.onmouseup = null;
+                    document.onmousemove = null;
+
+                    if(!that.selections[0].start) {throw 'no start..'}
+                    let dataAtt = e.target.dataset;
+                    that.selections[0].end = { x: dataAtt.row, y: dataAtt.col };
+                }       
+            }
+
+            dragElement(this.$el.querySelector('.grid'));
         },
         updated:function(){
             console.log(this.scrollList);
@@ -101,7 +168,8 @@
             startIndex: 0,
             bufferItems: 5,
             itemHeight: 30,
-            weight: 1
+            weight: 1,
+            selections:[]
             }   
         },
         computed:{         
@@ -114,10 +182,21 @@
            
         },
         methods:{
-            print:function(value){
-                console.log(value + 'print xxx');
-                ctx.rect(10, 20, 180, 200);
-                ctx.fill();
+            draw:function(x, y , w, h){
+                ctx.lineWidth = 2;
+                ctx.strokeStyle = "#ff6358"
+                ctx.rect(x, y, w, h);
+                ctx.stroke();
+
+                this.selections.forEach(x =>{
+                    
+                });
+            },
+            clear: function(x, y, w, h){
+                ctx.clearRect(x -2, y -2, w + 2, h + 2);
+            },
+            test: function(v){
+                console.log('xxxx' + v);
             }
         }
     };
@@ -125,21 +204,25 @@
 
 <style lang="less" scoped>
     .grid{        
+        --col-width: 90px;
+        --row-height: 30px;
+
         height: 300px;
         width: 100%;
         background-color: transparent;
         color: black;
         overflow: auto;
         position: relative;
+        font-size: 12px;
         
 
         .row{
             display: flex;
-            height: 30px;
+            height: var(--row-height);
         }
 
         .column{
-            
+            width: var(--col-width);
         }
 
         // span{
@@ -151,12 +234,19 @@
         //     padding: 4px 8px;
         // }
 
-        #vessel{
+        .vessel{
             position: absolute;
         }
 
         .cell{
             border: 0.5px solid black;
+        }
+
+        canvas{
+            position: absolute;
+            top: 0;
+            left: 0;
+            pointer-events: none;
         }
     }
 </style>
