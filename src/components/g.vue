@@ -2,13 +2,14 @@
   <div class="grid">
       <div id="vessel">
         <div  class="row" v-for="(item) in scrollList" v-bind:key="item.key">
-            <div class="column"><span>{{item.id}} | </span></div>
-            <div class="column"><span>{{item.rt}}</span></div>
-            <div class="column"><span>{{item.vt}}</span></div>
-            <div class="column"><span>{{item.currency}}</span></div>
-            <div class="column"><span>{{item.status}}</span></div>
+            <div class="column cell"><span>{{item.id}} | </span></div>
+            <div class="column cell" v-on:click="print('hi')"><span>{{item.rt}}</span></div>
+            <div class="column cell"><span>{{item.vt}}</span></div>
+            <div class="column cell"><span>{{item.currency}}</span></div>
+            <div class="column cell"><span>{{item.status}}</span></div>
         </div>
       </div>
+      <canvas id="canvas"></canvas>
   </div>
 </template>
 
@@ -22,7 +23,7 @@
             this.style = style;
         }
     }
-
+    var ctx = null;
 
     export default {
         created: function(){
@@ -81,6 +82,10 @@
             }).bind(this);
             
             let x = 0;
+            const canvas = document.getElementById('canvas');
+            ctx = canvas.getContext('2d');
+            ctx.rect(10, 20, 150, 100);
+            ctx.fill();
         },
         updated:function(){
             console.log(this.scrollList);
@@ -107,6 +112,13 @@
         },
         watch:{
            
+        },
+        methods:{
+            print:function(value){
+                console.log(value + 'print xxx');
+                ctx.rect(10, 20, 180, 200);
+                ctx.fill();
+            }
         }
     };
 </script>
@@ -115,10 +127,11 @@
     .grid{        
         height: 300px;
         width: 100%;
-        background-color: black;
-        color: white;
+        background-color: transparent;
+        color: black;
         overflow: auto;
         position: relative;
+        
 
         .row{
             display: flex;
@@ -140,6 +153,10 @@
 
         #vessel{
             position: absolute;
+        }
+
+        .cell{
+            border: 0.5px solid black;
         }
     }
 </style>
