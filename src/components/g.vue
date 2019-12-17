@@ -4,11 +4,12 @@
     <div class="grid">
         <div class="vessel">
             <div  class="row" v-for="(item, row_index) in scrollList" v-bind:key="item.key">
-                <div v-for="(col, col_index) in Object.keys(item)" v-bind:key="col" class="column cell" :data-col="col_index" :data-row="row_index" v-on:click="test('gf')">{{item[col]}}</div>
+                <div v-for="(col, col_index) in Object.keys(item)" v-bind:key="col" class="column cell" :data-col="col_index" :data-row="row_index">{{item[col]}}</div>
             </div>
         </div>
         <canvas class="canvas"></canvas>
     </div>
+    <button v-on:click="test('gf')">test</button>
   </div>
 </template>
 
@@ -22,6 +23,8 @@
             this.style = style;
         }
     }
+
+    var canvas = null;
     var ctx = null;
 
     export default {
@@ -37,7 +40,7 @@
         mounted: function(){
             let that = this;
 
-            let canvas = this.$el.querySelector('canvas');
+            canvas = this.$el.querySelector('canvas');
             canvas.height = this.$el.querySelector('.grid').clientHeight;
             canvas.width = this.$el.querySelector('.grid').clientWidth;
             ctx = canvas.getContext('2d');
@@ -88,7 +91,7 @@
                 }
             }).bind(this);
                     
-            this.draw(10, 20, 150, 100);
+            
 
             function dragElement(elmnt) {
                 var pos1 = 0, pos2 = 0, pos3 = 0, pos4 = 0;
@@ -100,15 +103,22 @@
                     e = e || window.event;
                     e.preventDefault();
                     // get the mouse cursor position at startup:
-                    pos3 = e.clientX;
-                    pos4 = e.clientY;
-                    
+ 
                     r = null;
                     c = null;
                     that.selections = [];
+                        
+                    let dataAtt = e.target.dataset;
+                    r = dataAtt.row;
+                    c = dataAtt.col;
 
-                    document.onmouseup = closeDragElement;
-                    // call a function whenever the cursor moves:
+                    console.log('mouse down', r, c);
+                        
+                    that.selections[0] = {start: {x: r, y: c}, end: {x: r, y: c}};
+
+                    //that.draw();
+                    
+                    document.onmouseup = closeDragElement;                 
                     document.onmousemove = elementDrag;
                 }
 
@@ -130,14 +140,16 @@
                     let dataAtt = e.target.dataset;                
 
                     if(r != dataAtt.row || c != dataAtt.col){
-                        console.log(e.target);
+                        console.log('mouse moveing', e.target);
                         
                         r = dataAtt.row;
                         c = dataAtt.col;
-                        if(!that.selections[0])
-                            that.selections[0] = {start: {x: r, y: c}};
-
-                        
+                        if(that.selections[0] && that.selections[0].end){
+                            that.selections[0].end.x = r;
+                            that.selections[0].end.y = c;
+                        }
+                            
+                        //that.draw();
                     }
                 }
 
@@ -146,9 +158,10 @@
                     document.onmouseup = null;
                     document.onmousemove = null;
 
-                    if(!that.selections[0].start) {throw 'no start..'}
-                    let dataAtt = e.target.dataset;
-                    that.selections[0].end = { x: dataAtt.row, y: dataAtt.col };
+                    //if(!that.selections[0].start) {throw 'no start..'}
+
+                    //let dataAtt = e.target.dataset;
+                    //that.selections[0].end = { x: dataAtt.row, y: dataAtt.col };
                 }       
             }
 
@@ -169,7 +182,9 @@
             bufferItems: 5,
             itemHeight: 30,
             weight: 1,
-            selections:[]
+            selections:[],
+            cellHeight: 30,
+            cellWidth: 90
             }   
         },
         computed:{         
@@ -182,21 +197,32 @@
            
         },
         methods:{
-            draw:function(x, y , w, h){
+            draw:function(){
+                //this.clear();
+
+                console.log('canvas draw ... ');
                 ctx.lineWidth = 2;
-                ctx.strokeStyle = "#ff6358"
-                ctx.rect(x, y, w, h);
-                ctx.stroke();
+                ctx.strokeStyle = "#ff6358"                        
 
                 this.selections.forEach(x =>{
-                    
+                    //tl: top left; br: bottom right;
+                    let tlX = Math.min(Number(x.start.x), Number(x.end.x));
+                    let tlY = Math.min(Number(x.start.y), Number(x.end.y));
+                    let brX = Math.max(Number(x.start.x), Number(x.end.x));
+                    let brY = Math.max(Number(x.start.y), Number(x.end.y));
+
+                    let cell = this.$el.querySelector(`[data-row="${tlX}"][data-col="${tlY}"]`);
+                    ctx.rect(cell.offsetLeft, cell.offsetTop, (brX - tlX) * this.cellWidth, (brY - tlY) * this.cellHeight);
+                    ctx.stroke();
                 });
             },
             clear: function(x, y, w, h){
-                ctx.clearRect(x -2, y -2, w + 2, h + 2);
+                console.log('clearing whole canvas');
+                ctx.clearRect(0, 0, canvas.width, canvas.height);
             },
             test: function(v){
                 console.log('xxxx' + v);
+                this.draw();
             }
         }
     };
@@ -214,7 +240,7 @@
         overflow: auto;
         position: relative;
         font-size: 12px;
-        
+        box-sizing: border-box;
 
         .row{
             display: flex;
