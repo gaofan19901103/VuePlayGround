@@ -44,7 +44,8 @@
             let that = this;
 
             canvas = this.$el.querySelector('canvas');
-            canvas.height = this.$el.querySelector('.grid').clientHeight;
+            //canvas.height = this.$el.querySelector('.grid').clientHeight;
+            canvas.height = 30000;
             canvas.width = this.$el.querySelector('.grid').clientWidth;
             ctx = canvas.getContext('2d');
 
@@ -57,7 +58,8 @@
             scroller.style.width = "1px";
             scroller.style.height = 30000 + "px";
             
-            this.$el.querySelector('.grid').append(scroller);
+            let gridEl = this.$el.querySelector('.grid');
+            gridEl.append(scroller);
             
             var vessel = this.$el.querySelector('.vessel');
 
@@ -142,18 +144,30 @@
 
                     let dataAtt = e.target.dataset;                
 
-                    if(r != dataAtt.row || c != dataAtt.col){
-                        console.log('mouse moveing', e.target);
-                        
-                        r = dataAtt.row;
-                        c = dataAtt.col;
-                        if(that.selections[0] && that.selections[0].end){
-                            that.selections[0].end.x = r;
-                            that.selections[0].end.y = c;
-                        }
+                    if(gridEl.contains(e.target)){
+                        if(r != dataAtt.row || c != dataAtt.col){
+                            console.log('mouse moveing', e.target);
                             
-                        that.draw();
+                            r = dataAtt.row;
+                            c = dataAtt.col;
+                            if(that.selections[0] && that.selections[0].end){
+                                that.selections[0].end.x = r;
+                                that.selections[0].end.y = c;
+                            }
+                                
+                            that.draw();
+                        }
                     }
+                    else{
+                        //where to scroll
+                        let gridElRect = gridEl.getClientRects()[0];
+                        if(e.pageX > gridElRect.top + gridElRect.height){
+                            //should be down
+                            console.log('scroll outsite, down ...');
+                        } 
+                    }
+
+                    
                 }
 
                 function closeDragElement(e) {
@@ -169,6 +183,10 @@
             }
 
             dragElement(this.$el.querySelector('.grid'));
+
+            ctx.beginPath();
+            ctx.rect(10,10, 200, 3000);
+            ctx.stroke();
         },
         updated:function(){
             console.log(this.scrollList);
