@@ -4,12 +4,15 @@
     <div class="grid">
         <div class="vessel">
             <div  class="row" v-for="(item, row_index) in scrollList" v-bind:key="item.key">
-                <div v-for="(col, col_index) in Object.keys(item)" v-bind:key="col" class="column cell" :data-col="col_index" :data-row="row_index">{{item[col]}}</div>
+                <div v-for="(col, col_index) in Object.keys(item)" v-bind:key="col" class="column cell" :data-col="col_index" :data-row="row_index">
+                   {{item[col]}} 
+                </div>
             </div>
         </div>
         <canvas class="canvas"></canvas>
     </div>
     <button v-on:click="test('gf')">test</button>
+    <button v-on:click="clear('gf')">clear</button>
   </div>
 </template>
 
@@ -116,7 +119,7 @@
                         
                     that.selections[0] = {start: {x: r, y: c}, end: {x: r, y: c}};
 
-                    //that.draw();
+                    that.draw();
                     
                     document.onmouseup = closeDragElement;                 
                     document.onmousemove = elementDrag;
@@ -149,7 +152,7 @@
                             that.selections[0].end.y = c;
                         }
                             
-                        //that.draw();
+                        that.draw();
                     }
                 }
 
@@ -180,17 +183,17 @@
             return{
             startIndex: 0,
             bufferItems: 5,
-            itemHeight: 30,
+            itemHeight: 20,
             weight: 1,
             selections:[],
-            cellHeight: 30,
+            cellHeight: 20,
             cellWidth: 90
             }   
         },
         computed:{         
             scrollList: function(){
                  //return this.source.slice(this.startIndex, 10 * this.weight);
-                 return this.source.slice(this.startIndex, this.startIndex + 10 + this.bufferItems * 2);
+                 return this.source.slice(this.startIndex, this.startIndex + 15 + this.bufferItems * 2);
             }        
         },
         watch:{
@@ -198,11 +201,12 @@
         },
         methods:{
             draw:function(){
-                //this.clear();
+                this.clear();
 
                 console.log('canvas draw ... ');
                 ctx.lineWidth = 2;
-                ctx.strokeStyle = "#ff6358"                        
+                ctx.strokeStyle = "#ff6358"   
+                ctx.fillStyle = "rgba(255,99,88,0.25)";                     
 
                 this.selections.forEach(x =>{
                     //tl: top left; br: bottom right;
@@ -210,9 +214,18 @@
                     let tlY = Math.min(Number(x.start.y), Number(x.end.y));
                     let brX = Math.max(Number(x.start.x), Number(x.end.x));
                     let brY = Math.max(Number(x.start.y), Number(x.end.y));
-
+                           
                     let cell = this.$el.querySelector(`[data-row="${tlX}"][data-col="${tlY}"]`);
-                    ctx.rect(cell.offsetLeft, cell.offsetTop, (brX - tlX) * this.cellWidth, (brY - tlY) * this.cellHeight);
+
+                    let xx = cell.offsetLeft;
+                    let y = cell.offsetTop;
+                    let w = (brX - tlX + 1) * this.cellHeight;
+                    let h = (brY - tlY + 1) * this.cellWidth;
+
+                    ctx.beginPath();
+                    //ctx.rect(cell.offsetLeft, cell.offsetTop, (brX - tlX) * this.cellWidth, (brY - tlY) * this.cellHeight);
+                    ctx.rect(xx,y, h, w );
+                    ctx.fill();
                     ctx.stroke();
                 });
             },
@@ -229,9 +242,10 @@
 </script>
 
 <style lang="less" scoped>
+//rgba(255,99,88,.25)
     .grid{        
         --col-width: 90px;
-        --row-height: 30px;
+        --row-height: 20px;
 
         height: 300px;
         width: 100%;
@@ -240,7 +254,11 @@
         overflow: auto;
         position: relative;
         font-size: 12px;
-        box-sizing: border-box;
+
+        *{
+            box-sizing: border-box;
+        }
+
 
         .row{
             display: flex;
@@ -262,10 +280,17 @@
 
         .vessel{
             position: absolute;
+            border-bottom: 1px solid #cedbe6;
+            border-right: 1px solid #cedbe6;
         }
 
         .cell{
-            border: 0.5px solid black;
+            //outline: rgb(206, 219, 230) solid 1px;
+           // border: 0.5px solid black;
+            border-top: 1px solid #cedbe6;
+             border-left: 1px solid #cedbe6;
+                 text-align: center;
+                line-height: var(--row-height);
         }
 
         canvas{
