@@ -9,7 +9,7 @@
                 </div>
             </div>
         </div>
-        <canvas class="canvas"></canvas>
+        <div class="canvas"></div>
     </div>
     <button v-on:click="test('gf')">test</button>
     <button v-on:click="clear('gf')">clear</button>
@@ -43,11 +43,16 @@
         mounted: function(){
             let that = this;
 
-            canvas = this.$el.querySelector('canvas');
-            //canvas.height = this.$el.querySelector('.grid').clientHeight;
-            canvas.height = 30000;
-            canvas.width = this.$el.querySelector('.grid').clientWidth;
-            ctx = canvas.getContext('2d');
+            // canvas = this.$el.querySelector('canvas');
+            // canvas.height = this.$el.querySelector('.grid').clientHeight;
+            // canvas.height = 30000;
+            // canvas.width = this.$el.querySelector('.grid').clientWidth;
+            // ctx = canvas.getContext('2d');
+
+            canvas = this.$el.querySelector('.canvas');         
+            // canvas.style.height = 30000 + 'px';
+            // canvas.style.width = this.$el.querySelector('.grid').clientWidth + 'px';
+            
 
 
             let scroller = document.createElement("div");
@@ -121,7 +126,8 @@
                         
                     that.selections[0] = {start: {x: r, y: c}, end: {x: r, y: c}};
 
-                    that.draw();
+                    //that.draw();
+                    that.drawdiv();
                     
                     document.onmouseup = closeDragElement;                 
                     document.onmousemove = elementDrag;
@@ -141,6 +147,7 @@
 
                     //console.log(e.offsetX,e.offsetY);
                     //console.log(e.target);
+                    console.log('/////////////');
 
                     let dataAtt = e.target.dataset;                
 
@@ -155,7 +162,8 @@
                                 that.selections[0].end.y = c;
                             }
                                 
-                            that.draw();
+                           // that.draw();
+                            that.drawdiv();
                         }
                     }
                     else{
@@ -184,9 +192,9 @@
 
             dragElement(this.$el.querySelector('.grid'));
 
-            ctx.beginPath();
-            ctx.rect(10,10, 200, 3000);
-            ctx.stroke();
+            // ctx.beginPath();
+            // ctx.rect(10,10, 200, 3000);
+            // ctx.stroke();
         },
         updated:function(){
             console.log(this.scrollList);
@@ -251,6 +259,38 @@
                 console.log('clearing whole canvas');
                 ctx.clearRect(0, 0, canvas.width, canvas.height);
             },
+            drawdiv:function(){
+                this.cleardiv();
+
+                console.log('canvas div draw ... ');
+                                  
+
+                this.selections.forEach(x =>{
+                    //tl: top left; br: bottom right;
+                    let tlX = Math.min(Number(x.start.x), Number(x.end.x));
+                    let tlY = Math.min(Number(x.start.y), Number(x.end.y));
+                    let brX = Math.max(Number(x.start.x), Number(x.end.x));
+                    let brY = Math.max(Number(x.start.y), Number(x.end.y));
+                           
+                    let cell = this.$el.querySelector(`[data-row="${tlX}"][data-col="${tlY}"]`);
+
+                    let xx = cell.offsetLeft;
+                    let y = cell.offsetTop;
+                    let w = (brX - tlX + 1) * this.cellHeight;
+                    let h = (brY - tlY + 1) * this.cellWidth;
+
+                    canvas.style.top = y + 'px';
+                    canvas.style.left = xx + 'px';
+                    canvas.style.width = h + 'px';
+                    canvas.style.height = w + 'px';
+                });
+            },
+            cleardiv: function(x, y, w, h){
+                canvas.style.top = '0';
+                canvas.style.left = '0';
+                canvas.style.width = '0px';
+                canvas.style.height = '0px';
+            },
             test: function(v){
                 console.log('xxxx' + v);
                 this.draw();
@@ -311,11 +351,26 @@
                 line-height: var(--row-height);
         }
 
-        canvas{
+        // canvas{
+        //     position: absolute;
+        //     top: 0;
+        //     left: 0;
+        //     pointer-events: none;
+        // }
+
+        .canvas{
             position: absolute;
             top: 0;
             left: 0;
+            width: 0px;
+            height: 0px;
             pointer-events: none;
+            border: 2px solid #ff6358;
+            background-color: rgba(255,99,88,0.25);
+        }
+
+        .black{
+            background-color: black;
         }
     }
 </style>
