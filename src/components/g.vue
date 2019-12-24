@@ -167,12 +167,33 @@
                         }
                     }
                     else{
+                        if(that.scrollCallback){
+                            return;
+                        }
+
                         //where to scroll
                         let gridElRect = gridEl.getClientRects()[0];
-                        if(e.pageX > gridElRect.top + gridElRect.height){
+                        let up, down, left, right;
+                        if(e.pageY > gridElRect.top + gridElRect.height){
                             //should be down
                             console.log('scroll outsite, down ...');
+                            down = true;
                         } 
+                        else if(e.pageY < gridElRect.top){
+                            console.log('scroll outsite, up ...');
+                            up = true;
+                        }
+                        if(e.pageX > gridElRect.left + gridElRect.width){
+                            console.log('scroll outsite, left ...');
+                            right = true;
+                        }
+                        else if(e.pageY < gridElRect.left){
+                            console.log('scroll outsite, right ...');
+                            left = true;
+                        }
+
+                        console.log('auto scroll....');
+                        that.dragScroll(up, down, left, right);
                     }
 
                     
@@ -183,6 +204,7 @@
                     document.onmouseup = null;
                     document.onmousemove = null;
 
+                    that.clearDragScroll();
                     //if(!that.selections[0].start) {throw 'no start..'}
 
                     //let dataAtt = e.target.dataset;
@@ -213,7 +235,8 @@
             weight: 1,
             selections:[],
             cellHeight: 20,
-            cellWidth: 90
+            cellWidth: 90,
+            scrollCallback: null,
             }   
         },
         computed:{         
@@ -289,11 +312,39 @@
                 canvas.style.top = '0';
                 canvas.style.left = '0';
                 canvas.style.width = '0px';
-                canvas.style.height = '0px';
+                canvas.style.height = '0px'; 
             },
             test: function(v){
                 console.log('xxxx' + v);
                 this.draw();
+            },
+            dragScroll: function(up, down, left, right){
+                let that = this;
+                this.scrollCallback = setInterval(()=>{
+                    if(up){
+                        that.selections.end.y = (Number(that.selections[0].end.y) + 1) + '';
+                    }
+
+                    if(down){
+                        that.selections[0].end.y = (Number(that.selections[0].end.y) - 1) + '';
+                    }
+
+                    if(left){
+                        that.selections.end.x = (Number(that.selections.end.x) + 1) + '';
+                    }
+
+                    if(right){
+                        that.selections.end.x = (Number(that.selections.end.x) - 1) + '';
+                    }
+
+                    that.$el.querySelector('.grid').scrollBy(0, 30);
+                    that.drawdiv();
+                }, 500);
+            },
+            clearDragScroll: function(){
+                
+                clearInterval(this.scrollCallback);
+                this.scrollCallback = null;
             }
         }
     };
