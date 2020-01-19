@@ -4,6 +4,7 @@ import g from './components/g.vue';
 import container from './components/reset-submission-view.vue'; 
 import slider from './components/slider.vue';
 import parent from './components/parent.vue';
+import xxx from './components/child.vue';
 
 require('./directives/test-directive.js');
 
@@ -12,6 +13,7 @@ Vue.component('container', container);
 Vue.component('grid', g);
 Vue.component('slider', slider);
 Vue.component('parent', parent);
+Vue.component('xxx', xxx);
 
 var list = [];
 

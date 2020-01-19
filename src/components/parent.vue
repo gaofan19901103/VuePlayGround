@@ -1,7 +1,7 @@
 <template>
     <div class="parent">
-        <span>i'M THE Parent</span>
-        <xxx ref="myChild" :text="myString" v-on:change-text="changeText"></xxx>
+        <span @click="changeText">i'M THE Parent</span>
+        <slot></slot>
     </div> 
 </template>
 

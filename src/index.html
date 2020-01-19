@@ -93,7 +93,10 @@
       <grid :source="listSource"></grid>
 
       <div v-highlight id="hhh">
-        <parent ref="myParent"></parent>
+        <parent ref="myParent">
+          <xxx ref="myChild"></xxx>
+          <xxx ref="myChild"></xxx>
+        </parent>
       </div>
       
     </div>

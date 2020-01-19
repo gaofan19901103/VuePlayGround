@@ -1,6 +1,7 @@
 <template>
     <div class="child" ref="xxx">
-        <span>{{text}}</span>
+        <span>{{text1}}</span>
+        <p>{{xxx}}</p>
         <button @click="$emit('change-text', 0.1)">change text</button>
     </div> 
 </template>
@@ -12,7 +13,8 @@
         },
         data() {
             return {
- 
+                text1: 'ttt',
+                xxx: '123'
             };
         },
         computed:{
