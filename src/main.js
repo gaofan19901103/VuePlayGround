@@ -30,6 +30,9 @@ window.myVue = new Vue({
   data:{
     testString: 'hello w',
     listSource: list
+  },
+  components: {
+    'rr': parent
   }
 });
 

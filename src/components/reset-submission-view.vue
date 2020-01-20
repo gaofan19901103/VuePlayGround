@@ -20,6 +20,7 @@
         </div>
         <div class="select-button">✗</div> 
         <!-- ✗ -->
+        
   </div>
 </template>
 
@@ -29,11 +30,11 @@
             messageTitle: {type: String, required: true },
             messageSum: {type: String, required: false, default: '' },
             messageNotion: {type: String, required: false, default: '' },
-            messageNumber: {type: Number, required: false, default: 0 },
+            messageNumber: {type: String, required: false, default: '0' },
             circleNumber: {type: String, required: true },
-            circleTitle: {type: String, required: true },
-            circleWarnings: {type: String, required: false, default: 0 },
-            circleErrors: {type: String, required: false, default: 0 }
+            circleTitle: {type: String, required: false },
+            circleWarnings: {type: String, required: false, default: '0' },
+            circleErrors: {type: String, required: false, default: '0' }
         },
         // props:[
         //    'messageTitle',

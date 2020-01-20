@@ -2,6 +2,7 @@
     <div class="parent">
         <span @click="changeText">i'M THE Parent</span>
         <slot></slot>
+        <component :is="com" v-bind="xx"></component>
     </div> 
 </template>
 
@@ -12,12 +13,23 @@
         components:{
             'xxx': child
         },
+        mounted: function(){
+            let x = 0;
+
+            // const AsyncComponent = () => ({
+            //     component: import('./child.vue')
+            // });
+
+            let y = 0;
+        },
         props:{
 
         },
         data() {
             return {
-                myString: 'test initial'
+                myString: 'test initial',
+                com: 'xxx',
+                xx: {text: '1234567'}
             };
         },
         computed:{
