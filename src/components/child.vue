@@ -3,7 +3,7 @@
         <span>{{text1}}</span>
         <p>{{xxx}}</p>
         <p>{{text}}</p>
-        <button @click="$emit('change-text', 0.1)">change text</button>
+        <button @click="testFn">change text</button>
     </div> 
 </template>
 
@@ -20,6 +20,11 @@
         },
         computed:{
 
+        },
+        methods:{
+            testFn: function(){
+                console.log('test Fn');
+            }
         }
     };
 </script>

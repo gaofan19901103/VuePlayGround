@@ -20,3 +20,41 @@ ul{
         border-radius: 3px;
     }
 }
+
+
+
+.tooltip-box{
+    position: fixed;
+    padding: 10px;
+    background-color: #dddddd;
+    box-sizing: border-box; 
+    box-shadow: 0 2px 8px 0 white;
+    border: solid 1px #dddddd;
+    border-radius: 3px;
+    color: rgba(0, 0, 0, 0.7);
+    opacity: 0;
+    transition: opacity 0.3s ease-in-out;
+}
+
+.tooltip-arrow{
+    position: fixed;
+    width: 0px;
+    height: 0px;
+    border-left: 8px solid transparent;
+    border-right: 8px solid transparent;
+    border-bottom: 8px solid #dddddd;
+    opacity: 0;
+    transition: opacity 0.3s ease-in-out;
+}
+
+.tooltip-arrow.show, .tooltip-box.show{
+    opacity: 1;
+}
+
+.tooltip-arrow.show-below{
+    transform: rotateZ(0deg);
+}
+
+.tooltip-arrow.show-above{
+    transform: rotateZ(180deg);
+}

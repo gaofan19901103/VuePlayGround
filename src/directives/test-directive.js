@@ -1,5 +1,5 @@
 import Vue from 'vue';
-
+import dynamic from '../components/tooltip-content.vue';
 // Register a global custom directive called `v-focus`
 Vue.directive('highlight', {
   // When the bound element is inserted into the DOM...
@@ -9,6 +9,13 @@ Vue.directive('highlight', {
     el.onmouseenter = function(){
       el.style.backgroundColor = 'red';
     }
+
+    var ComponentClass = Vue.extend(dynamic)
+    var instance = new ComponentClass({
+        propsData: { component: 'xxx' , properties: {text: '333'}}
+    });
+    instance.$mount();
+    el.append(instance.$el);
   },
   bind: function (el, key, arg, expression, vm, value) {
     var that = this;
