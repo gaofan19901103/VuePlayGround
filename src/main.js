@@ -128,3 +128,168 @@ window.Portal.getTooltipPosition = function(target, tooltipBox){
     return position;
   }
 }
+
+// window.Portal.getTooltipPosition = function(target, tooltipBox){
+//   let position = {
+//     arrow: {top: 0, left: 0, classList: []},
+//     box: {top: 0, left: 0, classList: []}
+//   };
+
+//   const _arrowSize = 8;
+//   const _arrowMargin = 2;
+//   let _showTooltipBelow;
+
+//   let _targetRect = target.getBoundingClientRect();
+//   let _tootipBoxRect = tooltipBox.getBoundingClientRect();
+
+//   let _viewPortHeight = window.innerHeight;
+//   let _viewPortWidth = window.innerWidth;
+//   let _targetRectWidth = _targetRect.right - _targetRect.left;
+//   let _targetRectHeight = _targetRect.bottom - _targetRect.top;
+//   let _tooltipBoxRectWidth = _tootipBoxRect.right - _tootipBoxRect.left;
+//   let _tooltipBoxRectHeight = _tootipBoxRect.bottom - _tootipBoxRect.top;
+
+//   let _targetTopSpace =  _targetRect.top - _arrowSize - _tooltipBoxRectHeight;
+//   let _targetBottomSpace = _viewPortHeight - _targetRect.bottom - _arrowSize - _tooltipBoxRectHeight;
+//   let _targetTopAndBottomLeftSpace = _targetRect.left + _targetRectWidth / 2 - _tooltipBoxRectWidth / 2;
+//   let _targetTopAndBottomRightSpace = (_viewPortWidth - _targetRect.right) + _targetRectWidth / 2 - _tooltipBoxRectWidth / 2;
+
+//   let _targetLeftSpace = _targetRect.left - _arrowSize - _tooltipBoxRectWidth;
+//   let _targetRightSpace = _viewPortWidth - _targetRect.right - _arrowSize - _tooltipBoxRectWidth;
+//   let _targetLeftAndRightTopSpace = _targetRect.top + _targetRectHeight / 2 - _tooltipBoxRectHeight / 2;
+//   let _targetLeftAndRightBottomSpace = _targetRect.top + _targetRectHeight / 2 - _tooltipBoxRectHeight / 2;
+
+//   if(_targetBottomSpace > 0 || _targetTopSpace > 0){
+//     if(_targetBottomSpace > 0 && _targetTopSpace > 0){
+//         if(_targetBottomSpace >= _targetTopSpace){
+//           _showTooltipBelow = true;
+//             position.arrow.top = _targetRect.bottom + _arrowMargin;
+//             position.box.top = _targetRect.bottom + _arrowSize + _arrowMargin;
+//         }
+//         else{         
+//           _showTooltipBelow = false;
+//             position.arrow.top = _targetRect.top - _arrowSize - _arrowMargin;
+//             position.box.top = _targetRect.top - _arrowSize - _arrowMargin - _tooltipBoxRectHeight;
+//         }
+//     }
+//     else if(_targetBottomSpace > 0){
+//         _showTooltipBelow = true;
+//         position.arrow.top = _targetRect.bottom + _arrowMargin;
+//         position.box.top = _targetRect.bottom + _arrowSize + _arrowMargin;
+//     }
+//     else if(_targetTopSpace > 0){
+//         _showTooltipBelow = false;
+//         position.arrow.top = _targetRect.top - _arrowSize - _arrowMargin;
+//         position.box.top = _targetRect.top - _arrowSize - _arrowMargin - _tooltipBoxRectHeight;
+//     }
+//     else{
+//         throw console.error('your tooltip is too heigh.');
+//     } 
+    
+//     if(_targetTopAndBottomLeftSpace < 0 && _targetTopAndBottomRightSpace < 0){
+//         throw console.error('your tooltip is too long.');
+//     }
+    
+//     position.arrow.left = _targetRect.left + _targetRectWidth / 2 - _arrowSize;
+
+//     if(_targetTopAndBottomLeftSpace > 0 && _targetTopAndBottomRightSpace > 0){        
+//         position.box.left = _targetRect.left - _tooltipBoxRectWidth / 2 + _targetRectWidth / 2;
+//     }
+//     else if (_targetTopAndBottomLeftSpace < 0){
+//         position.box.left = 4;
+//     }
+//     else if (_targetTopAndBottomRightSpace < 0){
+//         position.box.left = _viewPortWidth - _tooltipBoxRectWidth - 4;
+//     }
+
+//     if(_showTooltipBelow){
+//       position.arrow.classList.push('show-below');
+//     }
+//     else{
+//       position.arrow.classList.push('show-above');
+//     }
+
+//     return position;
+//   }
+// }
+
+
+Portal.Utils.getTooltipPositionv2 = function (target, tooltipBox) {
+  const _arrowSize = 8;
+  const _arrowMargin = 2;
+
+  let _targetRect = target.getBoundingClientRect();
+  let _tootipBoxRect = tooltipBox.getBoundingClientRect();
+
+  let _viewPortHeight = window.innerHeight;
+  let _viewPortWidth = window.innerWidth;
+  let _targetRectWidth = _targetRect.right - _targetRect.left;
+  let _targetRectHeight = _targetRect.bottom - _targetRect.top;
+  let _tooltipBoxRectWidth = _tootipBoxRect.right - _tootipBoxRect.left;
+  let _tooltipBoxRectHeight = _tootipBoxRect.bottom - _tootipBoxRect.top;
+
+  let _targetTopSpace = _targetRect.top - _arrowSize - _arrowMargin - _tooltipBoxRectHeight;
+  let _targetBottomSpace = _viewPortHeight - _targetRect.bottom - _arrowSize - _arrowMargin - _tooltipBoxRectHeight;
+  let _targetTopAndBottomLeftSpace = _targetRect.left + _targetRectWidth / 2 - _tooltipBoxRectWidth / 2;
+  let _targetTopAndBottomRightSpace = (_viewPortWidth - _targetRect.right) + _targetRectWidth / 2 - _tooltipBoxRectWidth / 2;
+
+  let _targetLeftSpace = _targetRect.left - _arrowSize - _arrowMargin - _tooltipBoxRectWidth;
+  let _targetRightSpace = _viewPortWidth - _targetRect.right - _arrowSize - _arrowMargin - _tooltipBoxRectWidth;
+  let _targetLeftAndRightTopSpace = _targetRect.top + _targetRectHeight / 2 - _tooltipBoxRectHeight / 2;
+  let _targetLeftAndRightBottomSpace = _targetRect.top + _targetRectHeight / 2 - _tooltipBoxRectHeight / 2;
+
+
+  let direction = {
+      up: { top: _targetTopSpace, left: _targetTopAndBottomLeftSpace, class: 'up' },
+      down: { top: _targetRect.bottom + _arrowSize + _arrowMargin, _targetTopAndBottomLeftSpace: 0, class: 'down' },
+      left: { top: _targetLeftAndRightTopSpace, left: _targetLeftSpace, class: 'left' },
+      right: { top: _targetLeftAndRightTopSpace, left: _targetRect.right + _arrowSize + _arrowMargin, class: 'right' },
+      recommand: { top: 0, left: 0, class: ''}
+  };
+
+  let _showTooltipBelow;
+
+  if (_targetBottomSpace > 0 || _targetTopSpace > 0) {
+      if (_targetBottomSpace > 0 && _targetTopSpace > 0) {
+          if (_targetBottomSpace >= _targetTopSpace) {
+              _showTooltipBelow = true;
+              direction.recommand.top = _targetRect.bottom + _arrowSize + _arrowMargin;
+          }
+          else {
+              _showTooltipBelow = false;
+              direction.recommand.top = _targetRect.top - _arrowSize - _arrowMargin - _tooltipBoxRectHeight;
+          }
+      }
+      else if (_targetBottomSpace > 0) {
+          _showTooltipBelow = true;
+          direction.recommand.top.top = _targetRect.bottom + _arrowSize + _arrowMargin;
+      }
+      else if (_targetTopSpace > 0) {
+          _showTooltipBelow = false;
+          direction.recommand.top = _targetRect.top - _arrowSize - _arrowMargin - _tooltipBoxRectHeight;
+      }
+      else {
+          throw console.error('your tooltip is too heigh.');
+      }
+
+      if (_targetTopAndBottomLeftSpace < 0 && _targetTopAndBottomRightSpace < 0) {
+          throw console.error('your tooltip is too long.');
+      }
+
+      if (_targetTopAndBottomLeftSpace > 0 && _targetTopAndBottomRightSpace > 0) {
+          direction.recommand.left = _targetRect.left + _targetRectWidth / 2 - _tooltipBoxRectWidth / 2;
+      }
+      else if (_targetTopAndBottomLeftSpace < 0) {
+          direction.recommand.left = 4;
+          document.querySelector('.v-tooltip-box').style.setProperty('--arrow-left', _targetRectWidth / 2 + 'px');
+      }
+      else if (_targetTopAndBottomRightSpace < 0) {
+          direction.recommand.left = _viewPortWidth - _tooltipBoxRectWidth - 4;
+          document.querySelector('.v-tooltip-box').style.setProperty('--arrow-left', _viewPortWidth - _targetRectWidth / 2 + 'px');
+      }
+
+      direction.recommand.class = _showTooltipBelow ? 'down' : 'up';
+
+      return direction;
+  }
+}
