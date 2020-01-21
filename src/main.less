@@ -24,6 +24,9 @@ ul{
 
 
 .tooltip-box{
+    --arrow-left: calc(50% - 4px);
+    --arrow-top: calc(50% - 4px);
+
     position: fixed;
     padding: 10px;
     background-color: #dddddd;
@@ -32,29 +35,75 @@ ul{
     border: solid 1px #dddddd;
     border-radius: 3px;
     color: rgba(0, 0, 0, 0.7);
-    opacity: 0;
+    top: -10000px;
     transition: opacity 0.3s ease-in-out;
+
+    &:after{
+        position: absolute;
+        content: '';
+        width: 0px;
+        height: 0px;
+        border-left: 8px solid transparent;
+        border-right: 8px solid transparent;
+        border-bottom: 8px solid #dddddd;
+    }
+
+    &.down:after{
+        top: -8px;
+        left: var(--arrow-left);
+    }
+
+    &.up:after{
+        top: 100%;
+        left: var(--arrow-left);
+        transform: rotate(180deg);
+    }
+
+    &.left:after{
+        top: var(--arrow-top);
+        left: calc(100% - 3px);
+    }
+
+    &.right:after{
+        top: var(--arrow-top);
+        left: -13px;
+        transform: rotate(-90deg);
+    }
 }
 
-.tooltip-arrow{
-    position: fixed;
-    width: 0px;
-    height: 0px;
-    border-left: 8px solid transparent;
-    border-right: 8px solid transparent;
-    border-bottom: 8px solid #dddddd;
-    opacity: 0;
-    transition: opacity 0.3s ease-in-out;
-}
+// .tooltip-arrow{
 
-.tooltip-arrow.show, .tooltip-box.show{
-    opacity: 1;
-}
+//     position: fixed;
+//     width: 0px;
+//     height: 0px;
+//     border-left: 8px solid transparent;
+//     border-right: 8px solid transparent;
+//     border-bottom: 8px solid #dddddd;
+//     opacity: 0;
+//     transition: opacity 0.3s ease-in-out;
+// }
 
-.tooltip-arrow.show-below{
-    transform: rotateZ(0deg);
-}
+// .tooltip-arrow.show, .tooltip-box.show{
+//     opacity: 1;
+// }
 
-.tooltip-arrow.show-above{
-    transform: rotateZ(180deg);
-}
+// .tooltip-arrow.show-below{
+//     transform: rotateZ(0deg);
+// }
+
+// .tooltip-arrow.show-above{
+//     transform: rotateZ(180deg);
+// }
+
+
+// .tooltip-box.down:after{
+//     position: absolute;
+//     content: '';
+//     width: 0px;
+//     height: 0px;
+//     top: -8px;
+//     left: var(--arrow-left);
+//     border-left: 8px solid transparent;
+//     border-right: 8px solid transparent;
+//     border-bottom: 8px solid #dddddd;
+// }

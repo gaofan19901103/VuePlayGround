@@ -1,7 +1,11 @@
 <template>
-    <div class="tooltip-content">
-        <component :is="component" v-bind="properties"></component>
+<div class="tooltip-box down">
+    <span v-if="!component">{{text}}</span>
+    <div class="tooltip-content" v-if="component">
+        <component :is="component" v-bind="props"></component>
     </div> 
+</div>
+
 </template>
 
 <script>
@@ -9,14 +13,15 @@
     
     export default {
         components:{
-            'xxx': child
+            'child': child
         },
         mounted: function(){
             
         },
         props:{
+            text: {type: String, required: false },
             component: {type: String, required: false },
-            properties: {type: Object, required: false}
+            props: {type: Object, required: false}
         },
         data() {
             return {
@@ -27,7 +32,7 @@
             
         },
         methods:{
-            
+
         }
     };
 </script>

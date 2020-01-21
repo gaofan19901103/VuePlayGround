@@ -30,10 +30,11 @@ window.myVue = new Vue({
   el: '#app',
   data:{
     testString: 'hello w',
-    listSource: list
-  },
-  components: {
-    'rr': parent
+    listSource: list,
+    tooltipTestData: {
+      component: 'child',
+      props:{text: 'im a child'}
+    }
   }
 });
 
@@ -98,11 +99,11 @@ window.Portal.getTooltipPosition = function(target, tooltipBox){
         position.box.top = _targetRect.top - _arrowSize - _arrowMargin - _tooltipBoxRectHeight;
     }
     else{
-        throw console.error('your tooltip wiht id {' + id + '} is too heigh.');
+        throw console.error('your tooltip is too heigh.');
     } 
     
     if(_targetTopAndBottomLeftSpace < 0 && _targetTopAndBottomRightSpace < 0){
-        throw console.error('your tooltip wiht id {' + id + '} is too long.');
+        throw console.error('your tooltip is too long.');
     }
     
     position.arrow.left = _targetRect.left + _targetRectWidth / 2 - _arrowSize;
