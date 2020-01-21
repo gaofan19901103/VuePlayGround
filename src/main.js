@@ -32,8 +32,9 @@ window.myVue = new Vue({
     testString: 'hello w',
     listSource: list,
     tooltipTestData: {
-      component: 'child',
-      props:{text: 'im a child'}
+      component: 'message-list',
+      props:{ messages: ['im a child']},
+      classList: ['error-message-list']
     }
   }
 });
@@ -214,9 +215,10 @@ window.Portal.getTooltipPosition = function(target, tooltipBox){
 // }
 
 
-Portal.Utils.getTooltipPositionv2 = function (target, tooltipBox) {
-  const _arrowSize = 8;
+window.Portal.getTooltipPositionv2 = function (target, tooltipBox) {
+  const _arrowSize = 4;
   const _arrowMargin = 2;
+  const _edgeMargin = 4;
 
   let _targetRect = target.getBoundingClientRect();
   let _tootipBoxRect = tooltipBox.getBoundingClientRect();
@@ -241,7 +243,7 @@ Portal.Utils.getTooltipPositionv2 = function (target, tooltipBox) {
 
   let direction = {
       up: { top: _targetTopSpace, left: _targetTopAndBottomLeftSpace, class: 'up' },
-      down: { top: _targetRect.bottom + _arrowSize + _arrowMargin, _targetTopAndBottomLeftSpace: 0, class: 'down' },
+      down: { top: _targetRect.bottom + _arrowSize + _arrowMargin, left : _targetTopAndBottomLeftSpace, class: 'down' },
       left: { top: _targetLeftAndRightTopSpace, left: _targetLeftSpace, class: 'left' },
       right: { top: _targetLeftAndRightTopSpace, left: _targetRect.right + _arrowSize + _arrowMargin, class: 'right' },
       recommand: { top: 0, left: 0, class: ''}
@@ -280,12 +282,12 @@ Portal.Utils.getTooltipPositionv2 = function (target, tooltipBox) {
           direction.recommand.left = _targetRect.left + _targetRectWidth / 2 - _tooltipBoxRectWidth / 2;
       }
       else if (_targetTopAndBottomLeftSpace < 0) {
-          direction.recommand.left = 4;
-          document.querySelector('.v-tooltip-box').style.setProperty('--arrow-left', _targetRectWidth / 2 + 'px');
+          direction.recommand.left = _edgeMargin;
+          document.querySelector('.v-tooltip-box').style.setProperty('--arrow-left', (_targetRect.left + _targetRectWidth / 2 - _arrowSize - _edgeMargin) + 'px');
       }
       else if (_targetTopAndBottomRightSpace < 0) {
           direction.recommand.left = _viewPortWidth - _tooltipBoxRectWidth - 4;
-          document.querySelector('.v-tooltip-box').style.setProperty('--arrow-left', _viewPortWidth - _targetRectWidth / 2 + 'px');
+          document.querySelector('.v-tooltip-box').style.setProperty('--arrow-left', (_tooltipBoxRectWidth - _targetRectWidth / 2 - _arrowSize) + 'px');
       }
 
       direction.recommand.class = _showTooltipBelow ? 'down' : 'up';
