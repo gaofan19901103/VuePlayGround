@@ -5,7 +5,7 @@
   <body>
     <div id="app" >
       <div style="height: 37px;" ref="test">{{testString }}</div>
-      <div style="display: flex; width: 520px; justify-content: center; flex-wrap: wrap; background-color: black;">
+      <!-- <div style="display: flex; width: 520px; justify-content: center; flex-wrap: wrap; background-color: black;">
         <div style="width: 100%;display: flex;justify-content: center;margin-bottom: 16px;">
           <container message-title="MY PROTOFOLIO 2"
           circle-number="67"
@@ -61,7 +61,7 @@
       </div>
     
       <div v-tooltip:data="tooltipTestData" style="width: 20px; height: 20px; background-color: green; display: inline-block; margin-left: 0px;"></div>
-      <div v-tooltip:data="tooltipTestData" style="width: 20px; height: 20px; background-color: green; display: inline-block; position: fixed; right: 0; top: 500px;"></div>
+      <div v-tooltip:data="tooltipTestData" style="width: 20px; height: 20px; background-color: green; display: inline-block; position: fixed; right: 0; top: 500px;"></div> -->
 
       <!-- <div v-highlight>
         <parent></parent>
@@ -101,13 +101,11 @@
         <sheet :source="listSource"></sheet>
       </virtual-scroller> -->
 
-      <!-- <grid :source="listSource"></grid>
-      <div v-highlight id="hhh">
-        <parent ref="myParent">
-          <xxx ref="myChild"></xxx>
-          <xxx ref="myChild"></xxx>
-        </parent>
-      </div> -->
+      <!-- <grid :source="listSource"></grid> -->
+      <div style="height: 300px;">
+        <sheet :source="listSource"></sheet>
+      </div>
+     
       
     </div>
   </body>

@@ -9,7 +9,7 @@
                 </div>
             </div>
         </div>
-        <div class="canvas"></div>
+        <div class="selection-area"></div>
     </div>
     <button v-on:click="test('gf')">test</button>
     <button v-on:click="clear('gf')">clear</button>
@@ -27,7 +27,7 @@
         }
     }
 
-    var canvas = null;
+    var selectionArea = null;
     var ctx = null;
 
     export default {
@@ -43,15 +43,9 @@
         mounted: function(){
             let that = this;
 
-            // canvas = this.$el.querySelector('canvas');
-            // canvas.height = this.$el.querySelector('.grid').clientHeight;
-            // canvas.height = 30000;
-            // canvas.width = this.$el.querySelector('.grid').clientWidth;
-            // ctx = canvas.getContext('2d');
-
-            canvas = this.$el.querySelector('.canvas');         
-            // canvas.style.height = 30000 + 'px';
-            // canvas.style.width = this.$el.querySelector('.grid').clientWidth + 'px';
+        
+            selectionArea = this.$el.querySelector('.selection-area');         
+           
             
 
 
@@ -252,7 +246,7 @@
             draw:function(){
                 this.clear();
 
-                console.log('canvas draw ... ');
+                console.log('selectionArea draw ... ');
                 ctx.lineWidth = 2;
                 ctx.strokeStyle = "#ff6358"   
                 ctx.fillStyle = "rgba(255,99,88,0.25)";                     
@@ -279,13 +273,13 @@
                 });
             },
             clear: function(x, y, w, h){
-                console.log('clearing whole canvas');
-                ctx.clearRect(0, 0, canvas.width, canvas.height);
+                console.log('clearing whole selectionArea');
+                ctx.clearRect(0, 0, selectionArea.width, selectionArea.height);
             },
             drawdiv:function(){
                 this.cleardiv();
 
-                console.log('canvas div draw ... ');
+                console.log('selectionArea div draw ... ');
                                   
 
                 this.selections.forEach(x =>{
@@ -302,17 +296,17 @@
                     let w = (brX - tlX + 1) * this.cellHeight;
                     let h = (brY - tlY + 1) * this.cellWidth;
 
-                    canvas.style.top = y + 'px';
-                    canvas.style.left = xx + 'px';
-                    canvas.style.width = h + 'px';
-                    canvas.style.height = w + 'px';
+                    selectionArea.style.top = y + 'px';
+                    selectionArea.style.left = xx + 'px';
+                    selectionArea.style.width = h + 'px';
+                    selectionArea.style.height = w + 'px';
                 });
             },
             cleardiv: function(x, y, w, h){
-                canvas.style.top = '0';
-                canvas.style.left = '0';
-                canvas.style.width = '0px';
-                canvas.style.height = '0px'; 
+                selectionArea.style.top = '0';
+                selectionArea.style.left = '0';
+                selectionArea.style.width = '0px';
+                selectionArea.style.height = '0px'; 
             },
             test: function(v){
                 console.log('xxxx' + v);
@@ -378,15 +372,7 @@
             width: var(--col-width);
         }
 
-        // span{
-        //     font-size: 12px;
-        //     //font-family: 'NEX Light';
-        //     background-color: #232323;
-        //     line-height: 24px;
-        //     margin: 1px;
-        //     padding: 4px 8px;
-        // }
-
+       
         .vessel{
             position: absolute;
             border-bottom: 1px solid #cedbe6;
@@ -402,14 +388,7 @@
                 line-height: var(--row-height);
         }
 
-        // canvas{
-        //     position: absolute;
-        //     top: 0;
-        //     left: 0;
-        //     pointer-events: none;
-        // }
-
-        .canvas{
+        .selection-area{
             position: absolute;
             top: 0;
             left: 0;

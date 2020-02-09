@@ -10,8 +10,6 @@
         </div>
         <div class="canvas"></div>
     </div>
-    <button v-on:click="test('gf')">test</button>
-    <button v-on:click="clear('gf')">clear</button>
   </div>
 </template>
 
