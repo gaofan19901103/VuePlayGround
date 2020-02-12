@@ -21,7 +21,7 @@
     };
 </script>
 
-<style lang="less" scoped>
+<style lang="less">
        
         .v-grid{
             --col-width: 90px;
@@ -30,12 +30,36 @@
 
             position: absolute;
             left: 0;
-            border-bottom: 1px solid var(--grid-border-color);
-            border-right: 1px solid var(--grid-border-color);
+            // border-bottom: 1px solid var(--grid-border-color);
+            // border-right: 1px solid var(--grid-border-color);
+
+            *{
+                box-sizing: border-box;
+            }
 
             .grid-row{
                 display: flex;
                 height: var(--row-height);  
+
+                .grid-cell:first-child{
+                    border-left: 1px solid var(--grid-border-color);
+                }
+
+                .grid-cell:last-child{
+                    border-right: 1px solid var(--grid-border-color);
+                }
+            }
+
+            .grid-row:first-child{
+                .grid-cell{
+                    border-top: 1px solid var(--grid-border-color); 
+                }
+            }
+
+            .grid-row:last-child{
+                .grid-cell{
+                    border-bottom: 1px solid var(--grid-border-color); 
+                }
             }
 
             .grid-column{
@@ -45,9 +69,12 @@
             .grid-cell{ 
                 text-align: center;
                 line-height: var(--row-height);
-                border-top: 1px solid var(--grid-border-color);
-                border-left: 1px solid var(--grid-border-color);             
+                border: 0.5px solid var(--grid-border-color);
+                // border-top: 1px solid var(--grid-border-color);
+                // border-left: 1px solid var(--grid-border-color);             
             }
+
+    
         }
 
    

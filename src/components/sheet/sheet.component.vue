@@ -1,9 +1,9 @@
 <template>
   <div class="v-sheet-vessel">
        
-    <div class="v-sheet" v-on:scroll="onXX($event)">
+    <div class="v-sheet" v-on:scroll="onScroll($event)" v-on:mousedown="onMouseDown" v-on:mouseup="onMouseUp" v-on:mousemove="onMouseMove">
         <grid :virtual-list="virtualList" v-bind:grid-top="gridTop"></grid>    
-        
+        <selection-area :selections="selections"></selection-area>
         <div class="vault" :style="{ height: vaultHeight + 'px' }"></div>
     </div>
 
@@ -14,6 +14,7 @@
   
     import Grid from './grid.component.vue';
     import SelectionArea from './selection-area.component.vue';
+import { setInterval } from 'timers';
 
     export default {
         components:{
@@ -21,7 +22,19 @@
             selectionArea: SelectionArea
         },
         mounted: function(){
-            this.sheetHeight = this.$el.clientHeight;                   
+            this.sheetHeight = this.$el.clientHeight; 
+             
+            this.selections = [{
+                start: {x: 0, y: 0},
+                end: {x: 3, y: 3}
+            }];     
+            
+            // var customVar = this.selections;
+
+            // setInterval(function(){
+            //     customVar[0].end.x++;
+            //     customVar[0].end.y++;
+            // }, 500);
         },
         updated:function(){
             console.log(this.virtualList);
@@ -60,7 +73,7 @@
            
         },
         methods:{
-           onXX: function(e){
+           onScroll: function(e){
               if(Math.abs(e.target.scrollTop -  this.lastVirtualPosition) > this.virtualBuffer * this.rowHeight){
                     console.debug('scroll render');
                     let scrollTop = e.target.scrollTop;
@@ -68,12 +81,24 @@
                     this.sheetScrollTop = scrollTop;
                     this.gridTop = (scrollTop - this.virtualBuffer * this.rowHeight) < 0 ? 0 : (scrollTop - this.virtualBuffer * this.rowHeight);
                 }
-           }           
+           },
+           onMouseDown: function(){
+               console.log('down xxx');
+           },
+           onMouseUp: function(){
+                console.log('up xxx');
+           },
+           onMouseMove:function(){
+               console.log('move xxx');
+
+                this.selections[0].end.x++;
+                this.selections[0].end.y++;
+           }        
         }
     };
 </script>
 
-<style lang="less" scoped>
+<style lang="less">
     .v-sheet-vessel{
         height: 100%;
         width: 100%;
