@@ -10,6 +10,7 @@ import sheet from './components/sheet/sheet.component.vue';
 
 require('./directives/test-directive.js');
 require('./directives/tooltip.js');
+require('./directives/resize.directive.js');
 
 Vue.component('app', App);
 Vue.component('container', container);

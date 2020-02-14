@@ -24,12 +24,15 @@
                     let brX = Math.max(Number(slt.start.x), Number(slt.end.x));
                     let brY = Math.max(Number(slt.start.y), Number(slt.end.y));
                            
-                    let cell = this.$el.parentElement.querySelector(`[data-row="${tlX}"][data-col="${tlY}"]`);
+                    //let cell = this.$el.parentElement.querySelector(`[data-row="${tlX}"][data-col="${tlY}"]`);
+
 
                     areas.push({
                         key: index,
-                        top: cell.offsetTop,
-                        left: cell.offsetLeft,
+                        // top: cell.offsetTop,
+                        // left: cell.offsetLeft,
+                        top: tlY * this.$parent.rowHeight,
+                        left: tlX * this.$parent.columnWidth,
                         height: (brY - tlY + 1) * this.$parent.rowHeight,
                         width: (brX - tlX + 1) * this.$parent.columnWidth
                     });

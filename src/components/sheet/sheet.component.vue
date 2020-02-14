@@ -1,5 +1,5 @@
 <template>
-  <div class="v-sheet-vessel">
+  <div class="v-sheet-vessel" v-on-resize="onResize">
        
     <div class="v-sheet" v-on:scroll="onScroll($event)" v-on:mousedown="onMouseDown" v-on:mouseup="onMouseUp" v-on:mousemove="onMouseMove">
         <grid :virtual-list="virtualList" v-bind:grid-top="gridTop"></grid>    
@@ -14,7 +14,6 @@
   
     import Grid from './grid.component.vue';
     import SelectionArea from './selection-area.component.vue';
-import { setInterval } from 'timers';
 
     export default {
         components:{
@@ -22,11 +21,13 @@ import { setInterval } from 'timers';
             selectionArea: SelectionArea
         },
         mounted: function(){
+            let that = this;
+
             this.sheetHeight = this.$el.clientHeight; 
              
             this.selections = [{
-                start: {x: 0, y: 0},
-                end: {x: 3, y: 3}
+                start: {x: 1, y: 24},
+                end: {x: 5, y: 100}
             }];     
             
             // var customVar = this.selections;
@@ -35,6 +36,104 @@ import { setInterval } from 'timers';
             //     customVar[0].end.x++;
             //     customVar[0].end.y++;
             // }, 500);
+
+            function dragElement(elmnt) {
+                var pos1 = 0, pos2 = 0, pos3 = 0, pos4 = 0;
+                var rowIndex, columnIndex;
+
+                elmnt.onmousedown = dragMouseDown;
+                
+                function dragMouseDown(e) {
+                    e.preventDefault();
+
+                    rowIndex = null;
+                    columnIndex = null;
+                    that.selections = [];
+                        
+                    let dataAtt = e.target.dataset;
+                    rowIndex = dataAtt.row;
+                    columnIndex = dataAtt.col;
+
+                    console.log('mouse down', rowIndex, columnIndex);
+                        
+                    that.selections.push({
+                        start: {x: columnIndex, y: rowIndex}, 
+                        end: {x: columnIndex, y: rowIndex}
+                    });
+
+                    document.onmouseup = closeDragElement;                 
+                    document.onmousemove = elementDrag;
+                }
+
+                function elementDrag(e) {
+                    e = e || window.event;
+                    e.preventDefault();
+                    // calculate the new cursor position:
+                    pos1 = pos3 - e.clientX;
+                    pos2 = pos4 - e.clientY;
+                    pos3 = e.clientX;
+                    pos4 = e.clientY;
+                    // set the element's new position:
+                    // elmnt.style.top = (elmnt.offsetTop - pos2) + "px";
+                    // elmnt.style.left = (elmnt.offsetLeft - pos1) + "px";
+
+                    //console.log(e.offsetX,e.offsetY);
+                    //console.log(e.target);
+                    console.log('/////////////');
+
+                    let dataAtt = e.target.dataset;                
+
+                    if(that.$el.contains(e.target)){
+                        if(rowIndex != dataAtt.row || columnIndex != dataAtt.col){
+                            console.log('mouse moveing', e.target);
+                            
+                            rowIndex = dataAtt.row;
+                            columnIndex = dataAtt.col;
+                            if(that.selections[0] && that.selections[0].end){
+                                that.selections[0].end.x = columnIndex;
+                                that.selections[0].end.y = rowIndex;
+                            }                               
+                        }
+                    }
+                    else{
+                        if(that.scrollCallback){
+                            return;
+                        }
+
+                        //where to scroll
+                        let gridElRect = gridEl.getClientRects()[0];
+                        let up, down, left, right;
+                        if(e.pageY > gridElRect.top + gridElRect.height){
+                            //should be down
+                            console.log('scroll outsite, down ...');
+                            down = true;
+                        } 
+                        else if(e.pageY < gridElRect.top){
+                            console.log('scroll outsite, up ...');
+                            up = true;
+                        }
+                        if(e.pageX > gridElRect.left + gridElRect.width){
+                            console.log('scroll outsite, left ...');
+                            right = true;
+                        }
+                        else if(e.pageY < gridElRect.left){
+                            console.log('scroll outsite, right ...');
+                            left = true;
+                        }
+
+                        console.log('auto scroll....');
+                        that.dragScroll(up, down, left, right);
+                    }                   
+                }
+
+                function closeDragElement(e) {
+                    document.onmouseup = null;
+                    document.onmousemove = null;
+                }       
+            }
+
+            let gridEl = this.$el.querySelector('.v-sheet');
+            dragElement(gridEl);
         },
         updated:function(){
             console.log(this.virtualList);
@@ -46,6 +145,8 @@ import { setInterval } from 'timers';
         },
         data:function(){
             return{
+                indexedSource: this.source.map((x,y) => Object.assign(x, {rowIndex: y })),
+
                 lastVirtualPosition: 0,
                 vaultHeight: this.source.length * this.rowHeight,
                 sheetHeight: 0,
@@ -66,7 +167,9 @@ import { setInterval } from 'timers';
                 let scrolledRowCount = Math.floor(this.sheetScrollTop / this.rowHeight);          
                 let startIndex = scrolledRowCount  - this.virtualBuffer < 0 ? 0 : scrolledRowCount  - this.virtualBuffer;   
                 let endIndex = startIndex + visibleRowCount + this.virtualBuffer * 2;                      
-                 return this.source.slice(startIndex, endIndex);
+                let result = this.indexedSource.slice(startIndex, endIndex);
+                return result;
+                //return this.source.concat();
             }        
         },
         watch:{
@@ -74,12 +177,18 @@ import { setInterval } from 'timers';
         },
         methods:{
            onScroll: function(e){
+                console.log(e.target.scrollTop);
               if(Math.abs(e.target.scrollTop -  this.lastVirtualPosition) > this.virtualBuffer * this.rowHeight){
                     console.debug('scroll render');
                     let scrollTop = e.target.scrollTop;
                     this.lastVirtualPosition = scrollTop;
                     this.sheetScrollTop = scrollTop;
-                    this.gridTop = (scrollTop - this.virtualBuffer * this.rowHeight) < 0 ? 0 : (scrollTop - this.virtualBuffer * this.rowHeight);
+                    
+                    let _gridTop = (scrollTop - this.virtualBuffer * this.rowHeight) < 0 ? 0 : (scrollTop - this.virtualBuffer * this.rowHeight);
+                    let testNumber = _gridTop % this.rowHeight;
+                    this.gridTop = _gridTop - testNumber;
+                   console.log('xxxxxxxxxxxxx ' + scrollTop,_gridTop, testNumber);
+                   //this.selections = this.selections.concat();
                 }
            },
            onMouseDown: function(){
@@ -91,9 +200,13 @@ import { setInterval } from 'timers';
            onMouseMove:function(){
                console.log('move xxx');
 
-                this.selections[0].end.x++;
-                this.selections[0].end.y++;
-           }        
+                // this.selections[0].end.x++;
+                // this.selections[0].end.y++;
+           },
+           onResize: function(){
+               console.log('on resize');
+               this.sheetHeight = this.$el.clientHeight;
+           }     
         }
     };
 </script>

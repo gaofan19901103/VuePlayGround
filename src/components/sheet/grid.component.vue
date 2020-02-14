@@ -1,8 +1,7 @@
 <template>
    <div class="v-grid" :style="{ top: gridTop + 'px'}">
-        <div class="grid-row" v-for="(item, row_index) in virtualList" v-bind:key="item.key">
-            <div class="grid-column grid-cell" :data-col="col_index" :data-row="row_index" 
-            v-for="(col, col_index) in Object.keys(item)" v-bind:key="col" >
+        <div class="grid-row" v-for="item in virtualList" v-bind:key="item.key">
+            <div class="grid-column grid-cell" v-for="(col, col_index) in Object.keys(item)" v-bind:key="col" :data-col="col_index" :data-row="item.rowIndex">
                 {{item[col]}} 
             </div>
         </div>
