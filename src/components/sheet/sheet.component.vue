@@ -14,6 +14,7 @@
   
     import Grid from './grid.component.vue';
     import SelectionArea from './selection-area.component.vue';
+import { posix } from 'path';
 
     export default {
         components:{
@@ -24,19 +25,9 @@
             let that = this;
 
             this.sheetHeight = this.$el.clientHeight; 
+
+            let gridRect = this.$el.querySelector('.v-sheet').getBoundingClientRect();
              
-            this.selections = [{
-                start: {x: 1, y: 24},
-                end: {x: 5, y: 100}
-            }];     
-            
-            // var customVar = this.selections;
-
-            // setInterval(function(){
-            //     customVar[0].end.x++;
-            //     customVar[0].end.y++;
-            // }, 500);
-
             function dragElement(elmnt) {
                 var pos1 = 0, pos2 = 0, pos3 = 0, pos4 = 0;
                 var rowIndex, columnIndex;
@@ -66,24 +57,16 @@
                 }
 
                 function elementDrag(e) {
-                    e = e || window.event;
-                    e.preventDefault();
-                    // calculate the new cursor position:
-                    pos1 = pos3 - e.clientX;
-                    pos2 = pos4 - e.clientY;
-                    pos3 = e.clientX;
-                    pos4 = e.clientY;
-                    // set the element's new position:
-                    // elmnt.style.top = (elmnt.offsetTop - pos2) + "px";
-                    // elmnt.style.left = (elmnt.offsetLeft - pos1) + "px";
+                    
+                    //e.preventDefault();
+                   
+                   
 
-                    //console.log(e.offsetX,e.offsetY);
-                    //console.log(e.target);
-                    console.log('/////////////');
+                    let dataAtt = e.target.dataset;     
+                    let equrant = that.getMousePosition(e.pageX, e.pageY, gridRect);       
 
-                    let dataAtt = e.target.dataset;                
-
-                    if(that.$el.contains(e.target)){
+                    //if(that.$el.contains(e.target)){
+                    if(equrant == 5){
                         if(rowIndex != dataAtt.row || columnIndex != dataAtt.col){
                             console.log('mouse moveing', e.target);
                             
@@ -96,33 +79,35 @@
                         }
                     }
                     else{
-                        if(that.scrollCallback){
-                            return;
-                        }
+                        console.log('equrant: ' + equrant);
 
-                        //where to scroll
-                        let gridElRect = gridEl.getClientRects()[0];
-                        let up, down, left, right;
-                        if(e.pageY > gridElRect.top + gridElRect.height){
-                            //should be down
-                            console.log('scroll outsite, down ...');
-                            down = true;
-                        } 
-                        else if(e.pageY < gridElRect.top){
-                            console.log('scroll outsite, up ...');
-                            up = true;
-                        }
-                        if(e.pageX > gridElRect.left + gridElRect.width){
-                            console.log('scroll outsite, left ...');
-                            right = true;
-                        }
-                        else if(e.pageY < gridElRect.left){
-                            console.log('scroll outsite, right ...');
-                            left = true;
-                        }
+                        // if(that.scrollCallback){
+                        //     return;
+                        // }
 
-                        console.log('auto scroll....');
-                        that.dragScroll(up, down, left, right);
+                        // //where to scroll
+                        // let gridElRect = gridEl.getClientRects()[0];
+                        // let up, down, left, right;
+                        // if(e.pageY > gridElRect.top + gridElRect.height){
+                        //     //should be down
+                        //     console.log('scroll outsite, down ...');
+                        //     down = true;
+                        // } 
+                        // else if(e.pageY < gridElRect.top){
+                        //     console.log('scroll outsite, up ...');
+                        //     up = true;
+                        // }
+                        // if(e.pageX > gridElRect.left + gridElRect.width){
+                        //     console.log('scroll outsite, left ...');
+                        //     right = true;
+                        // }
+                        // else if(e.pageY < gridElRect.left){
+                        //     console.log('scroll outsite, right ...');
+                        //     left = true;
+                        // }
+
+                        // console.log('auto scroll....');
+                        // that.dragScroll(up, down, left, right);
                     }                   
                 }
 
@@ -151,7 +136,6 @@
                 vaultHeight: this.source.length * this.rowHeight,
                 sheetHeight: 0,
 
-                sheetScrollTop: 0,
                 virtualBuffer: 5,      
 
                 selections:[],
@@ -164,12 +148,11 @@
             virtualList: function(){
                 if(!this.sheetHeight) return[];
                 let visibleRowCount = Math.ceil(this.sheetHeight / this.rowHeight);
-                let scrolledRowCount = Math.floor(this.sheetScrollTop / this.rowHeight);          
+                let scrolledRowCount = Math.floor(this.lastVirtualPosition / this.rowHeight);          
                 let startIndex = scrolledRowCount  - this.virtualBuffer < 0 ? 0 : scrolledRowCount  - this.virtualBuffer;   
                 let endIndex = startIndex + visibleRowCount + this.virtualBuffer * 2;                      
                 let result = this.indexedSource.slice(startIndex, endIndex);
                 return result;
-                //return this.source.concat();
             }        
         },
         watch:{
@@ -177,18 +160,12 @@
         },
         methods:{
            onScroll: function(e){
-                console.log(e.target.scrollTop);
               if(Math.abs(e.target.scrollTop -  this.lastVirtualPosition) > this.virtualBuffer * this.rowHeight){
-                    console.debug('scroll render');
+                    console.debug('virtual list re-render', e.target.scrollTop);
                     let scrollTop = e.target.scrollTop;
-                    this.lastVirtualPosition = scrollTop;
-                    this.sheetScrollTop = scrollTop;
-                    
+                    this.lastVirtualPosition = scrollTop;              
                     let _gridTop = (scrollTop - this.virtualBuffer * this.rowHeight) < 0 ? 0 : (scrollTop - this.virtualBuffer * this.rowHeight);
-                    let testNumber = _gridTop % this.rowHeight;
-                    this.gridTop = _gridTop - testNumber;
-                   console.log('xxxxxxxxxxxxx ' + scrollTop,_gridTop, testNumber);
-                   //this.selections = this.selections.concat();
+                    this.gridTop = _gridTop - (_gridTop % this.rowHeight);
                 }
            },
            onMouseDown: function(){
@@ -206,6 +183,55 @@
            onResize: function(){
                console.log('on resize');
                this.sheetHeight = this.$el.clientHeight;
+           },
+           getMousePosition: function(mouseX, mouseY, targetRect){
+                //let targetRect = target.getBoundingClientRect();
+                //let position = {};
+
+                let uppperEdge = targetRect.top;
+                let lowerEdge = targetRect.top + targetRect.height;
+                let leftEdge = targetRect.left;
+                let rightEdge = targetRect.left + targetRect.width;
+                
+                let result;
+                
+                
+               if(mouseX >= leftEdge && mouseX <= rightEdge && mouseY >= uppperEdge && mouseY <= lowerEdge){
+                   return 5;
+               }
+               else{
+                   if(mouseY < uppperEdge){
+                       if(mouseX < leftEdge){
+                           return 1;
+                       }
+                       else if (mouseX > rightEdge){
+                           return 3
+                       }
+                       else{
+                           return 2;
+                       }
+                   }
+                   else if(mouseY > lowerEdge){
+                       if(mouseX < leftEdge){
+                           return 7;
+                       }
+                       else if (mouseX > rightEdge){
+                           return 9
+                       }
+                       else{
+                           return 8;
+                       }
+                   }
+                    else{
+                        if(mouseX < leftEdge){
+                            return 4;
+                        }
+                        else{
+                                return 6;
+                        }    
+                    }
+  
+               }
            }     
         }
     };
