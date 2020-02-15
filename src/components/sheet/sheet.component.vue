@@ -4,7 +4,7 @@
     <div class="v-sheet" v-on:scroll="onScroll($event)" v-on:mousedown="onMouseDown" v-on:mouseup="onMouseUp" v-on:mousemove="onMouseMove">
         <grid :virtual-list="virtualList" v-bind:grid-top="gridTop"></grid>    
         <selection-area :selections="selections"></selection-area>
-        <div class="vault" :style="{ height: vaultHeight + 'px' }"></div>
+        <div class="vault" :style="{ height: source.length * rowHeight + 'px' }"></div>
     </div>
 
   </div>
@@ -14,7 +14,6 @@
   
     import Grid from './grid.component.vue';
     import SelectionArea from './selection-area.component.vue';
-import { posix } from 'path';
 
     export default {
         components:{
@@ -23,7 +22,8 @@ import { posix } from 'path';
         },
         mounted: function(){
             let that = this;
-
+            let vSheet = that.$el.querySelector('.v-sheet');
+            window.xxx = null;
             this.sheetHeight = this.$el.clientHeight; 
 
             let gridRect = this.$el.querySelector('.v-sheet').getBoundingClientRect();
@@ -79,8 +79,26 @@ import { posix } from 'path';
                         }
                     }
                     else{
-                        console.log('equrant: ' + equrant);
+                        console.log('equrant: ' + equrant);                      
+                        if(equrant ==8){
+                            that.inDragScrolling = true;                          
+                            
+                            window.xxx = window.xxx || setInterval(function(){
+                                console.log('interval');
+                                //failed
+                                //that.selections[0].end.y++;
+                                //failed
+                                // let start = that.virtualList[0].rowIndex + 1;
+                                // let end = start + that.virtualList.length;
+                                // that.virtualList = that.indexedSource.slice(start, end);
 
+                                that.lastVirtualPosition = that.lastVirtualPosition + that.rowHeight;
+                                //that.$set(that.selections[0].end, 'y', that.selections[0].end.y + 1);
+                                that.selections[0].end.y ++;
+
+                                vSheet.scrollBy(0, that.rowHeight);
+                            }, 50);
+                        }
                         // if(that.scrollCallback){
                         //     return;
                         // }
@@ -133,39 +151,44 @@ import { posix } from 'path';
                 indexedSource: this.source.map((x,y) => Object.assign(x, {rowIndex: y })),
 
                 lastVirtualPosition: 0,
-                vaultHeight: this.source.length * this.rowHeight,
                 sheetHeight: 0,
 
                 virtualBuffer: 5,      
 
                 selections:[],
-                scrollInterval: null,
+                gridTop: 0,
 
-                gridTop: 0
+                inDragScrolling: false,
+                onDragScroll: null
             }   
         },
         computed:{         
-            virtualList: function(){
+            virtualList: function(){ //depends on sheetHeight, lastVirtualPostion, rowHeight, virtualBuffer.
                 if(!this.sheetHeight) return[];
                 let visibleRowCount = Math.ceil(this.sheetHeight / this.rowHeight);
                 let scrolledRowCount = Math.floor(this.lastVirtualPosition / this.rowHeight);          
                 let startIndex = scrolledRowCount  - this.virtualBuffer < 0 ? 0 : scrolledRowCount  - this.virtualBuffer;   
                 let endIndex = startIndex + visibleRowCount + this.virtualBuffer * 2;                      
                 let result = this.indexedSource.slice(startIndex, endIndex);
+
+                let _gridTop = (this.lastVirtualPosition - this.virtualBuffer * this.rowHeight) < 0 ? 0 : (this.lastVirtualPosition - this.virtualBuffer * this.rowHeight);
+                this.gridTop = _gridTop - (_gridTop % this.rowHeight); //even myself doesn't know why ....
+
+                console.log('virtual list',result);
                 return result;
-            }        
+            }       
         },
         watch:{
            
         },
         methods:{
            onScroll: function(e){
+              if(this.inDragScrolling) return;
               if(Math.abs(e.target.scrollTop -  this.lastVirtualPosition) > this.virtualBuffer * this.rowHeight){
                     console.debug('virtual list re-render', e.target.scrollTop);
-                    let scrollTop = e.target.scrollTop;
-                    this.lastVirtualPosition = scrollTop;              
-                    let _gridTop = (scrollTop - this.virtualBuffer * this.rowHeight) < 0 ? 0 : (scrollTop - this.virtualBuffer * this.rowHeight);
-                    this.gridTop = _gridTop - (_gridTop % this.rowHeight);
+                    this.lastVirtualPosition = e.target.scrollTop;              
+                    // let _gridTop = (e.target.scrollTop - this.virtualBuffer * this.rowHeight) < 0 ? 0 : (e.target.scrollTop - this.virtualBuffer * this.rowHeight);
+                    // this.gridTop = _gridTop - (_gridTop % this.rowHeight); //even myself doesn't know why ....
                 }
            },
            onMouseDown: function(){

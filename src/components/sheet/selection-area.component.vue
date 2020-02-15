@@ -37,7 +37,7 @@
                         width: (brX - tlX + 1) * this.$parent.columnWidth
                     });
                 });
-
+                console.log('------top-------', areas[0].height);
                 return areas;
             }
         },
