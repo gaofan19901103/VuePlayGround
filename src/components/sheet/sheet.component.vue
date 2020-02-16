@@ -1,7 +1,7 @@
 <template>
   <div class="v-sheet-vessel" v-on-resize="onResize">
        
-    <div class="v-sheet" v-on:scroll="onScroll($event)" v-on:mousedown="onMouseDown" v-on:mouseup="onMouseUp" v-on:mousemove="onMouseMove">
+    <div class="v-sheet" v-on:scroll="onScroll($event)">
         <grid :virtual-list="virtualList" v-bind:grid-top="gridTop"></grid>    
         <selection-area :selections="selections"></selection-area>
         <div class="vault" :style="{ height: source.length * rowHeight + 'px' }"></div>
@@ -23,13 +23,11 @@
         mounted: function(){
             let that = this;
             let vSheet = that.$el.querySelector('.v-sheet');
-            window.xxx = null;
             this.sheetHeight = this.$el.clientHeight; 
 
-            let gridRect = this.$el.querySelector('.v-sheet').getBoundingClientRect();
+            this.gridRect = this.$el.querySelector('.v-sheet').getBoundingClientRect();
              
             function dragElement(elmnt) {
-                var pos1 = 0, pos2 = 0, pos3 = 0, pos4 = 0;
                 var rowIndex, columnIndex;
 
                 elmnt.onmousedown = dragMouseDown;
@@ -59,20 +57,22 @@
                 function elementDrag(e) {
                     
                     //e.preventDefault();
-                   
-                   
-
+                                  
                     let dataAtt = e.target.dataset;     
-                    let equrant = that.getMousePosition(e.pageX, e.pageY, gridRect);       
+                    let equrant = Portal.Utils.getMouseEqurant(e.pageX, e.pageY, that.gridRect);       
 
                     //if(that.$el.contains(e.target)){
                     if(equrant == 5){
+                        that.inDragScrolling = false;
+                        clearInterval(that.onDragScroll);
+                        that.onDragScroll = null;
+
                         if(rowIndex != dataAtt.row || columnIndex != dataAtt.col){
                             console.log('mouse moveing', e.target);
                             
                             rowIndex = dataAtt.row;
                             columnIndex = dataAtt.col;
-                            if(that.selections[0] && that.selections[0].end){
+                            if(that.selections[0] && that.selections[0].end){ //this needs to be considered.
                                 that.selections[0].end.x = columnIndex;
                                 that.selections[0].end.y = rowIndex;
                             }                               
@@ -83,63 +83,33 @@
                         if(equrant ==8){
                             that.inDragScrolling = true;                          
                             
-                            window.xxx = window.xxx || setInterval(function(){
-                                console.log('interval');
-                                //failed
-                                //that.selections[0].end.y++;
-                                //failed
-                                // let start = that.virtualList[0].rowIndex + 1;
-                                // let end = start + that.virtualList.length;
-                                // that.virtualList = that.indexedSource.slice(start, end);
-
-                                that.lastVirtualPosition = that.lastVirtualPosition + that.rowHeight;
-                                //that.$set(that.selections[0].end, 'y', that.selections[0].end.y + 1);
-                                that.selections[0].end.y ++;
-
-                                vSheet.scrollBy(0, that.rowHeight);
+                            that.onDragScroll = that.onDragScroll || setInterval(function(){
+                                console.debug('------------interval');
+                                if(that.withinRange()){
+                                    that.lastVirtualPosition = that.lastVirtualPosition + that.rowHeight;
+                                    that.selections[0].end.y ++;
+                                    vSheet.scrollBy(0, that.rowHeight);
+                                }
+                                else{
+                                    that.inDragScrolling = false;
+                                    clearInterval(that.onDragScroll);
+                                    that.onDragScroll = null;
+                                }
                             }, 50);
-                        }
-                        // if(that.scrollCallback){
-                        //     return;
-                        // }
-
-                        // //where to scroll
-                        // let gridElRect = gridEl.getClientRects()[0];
-                        // let up, down, left, right;
-                        // if(e.pageY > gridElRect.top + gridElRect.height){
-                        //     //should be down
-                        //     console.log('scroll outsite, down ...');
-                        //     down = true;
-                        // } 
-                        // else if(e.pageY < gridElRect.top){
-                        //     console.log('scroll outsite, up ...');
-                        //     up = true;
-                        // }
-                        // if(e.pageX > gridElRect.left + gridElRect.width){
-                        //     console.log('scroll outsite, left ...');
-                        //     right = true;
-                        // }
-                        // else if(e.pageY < gridElRect.left){
-                        //     console.log('scroll outsite, right ...');
-                        //     left = true;
-                        // }
-
-                        // console.log('auto scroll....');
-                        // that.dragScroll(up, down, left, right);
+                        }                        
                     }                   
                 }
 
                 function closeDragElement(e) {
+                    that.inDragScrolling = false;
+                    clearInterval(that.onDragScroll);
+                    that.onDragScroll = null;
                     document.onmouseup = null;
                     document.onmousemove = null;
                 }       
             }
 
-            let gridEl = this.$el.querySelector('.v-sheet');
-            dragElement(gridEl);
-        },
-        updated:function(){
-            console.log(this.virtualList);
+            dragElement(vSheet);
         },
         props:{
             source: {type: Array, required: true }, 
@@ -152,18 +122,18 @@
 
                 lastVirtualPosition: 0,
                 sheetHeight: 0,
-
+                gridRect: null,
                 virtualBuffer: 5,      
 
                 selections:[],
-                gridTop: 0,
 
+                currentOverCell: {row: null, col: null},
                 inDragScrolling: false,
                 onDragScroll: null
             }   
         },
         computed:{         
-            virtualList: function(){ //depends on sheetHeight, lastVirtualPostion, rowHeight, virtualBuffer.
+            virtualList: function(){ //depends on lastVirtualPostion, sheetHeight, rowHeight, virtualBuffer.
                 if(!this.sheetHeight) return[];
                 let visibleRowCount = Math.ceil(this.sheetHeight / this.rowHeight);
                 let scrolledRowCount = Math.floor(this.lastVirtualPosition / this.rowHeight);          
@@ -171,12 +141,14 @@
                 let endIndex = startIndex + visibleRowCount + this.virtualBuffer * 2;                      
                 let result = this.indexedSource.slice(startIndex, endIndex);
 
-                let _gridTop = (this.lastVirtualPosition - this.virtualBuffer * this.rowHeight) < 0 ? 0 : (this.lastVirtualPosition - this.virtualBuffer * this.rowHeight);
-                this.gridTop = _gridTop - (_gridTop % this.rowHeight); //even myself doesn't know why ....
-
                 console.log('virtual list',result);
                 return result;
-            }       
+            },
+            gridTop: function(){ //depends on lastVirtualPostion
+                let _gridTop = (this.lastVirtualPosition - this.virtualBuffer * this.rowHeight) < 0 ? 0 : (this.lastVirtualPosition - this.virtualBuffer * this.rowHeight);
+                _gridTop = _gridTop - (_gridTop % this.rowHeight); //even myself doesn't know why ....
+                return _gridTop;
+            }  
         },
         watch:{
            
@@ -187,74 +159,18 @@
               if(Math.abs(e.target.scrollTop -  this.lastVirtualPosition) > this.virtualBuffer * this.rowHeight){
                     console.debug('virtual list re-render', e.target.scrollTop);
                     this.lastVirtualPosition = e.target.scrollTop;              
-                    // let _gridTop = (e.target.scrollTop - this.virtualBuffer * this.rowHeight) < 0 ? 0 : (e.target.scrollTop - this.virtualBuffer * this.rowHeight);
-                    // this.gridTop = _gridTop - (_gridTop % this.rowHeight); //even myself doesn't know why ....
                 }
-           },
-           onMouseDown: function(){
-               console.log('down xxx');
-           },
-           onMouseUp: function(){
-                console.log('up xxx');
-           },
-           onMouseMove:function(){
-               console.log('move xxx');
-
-                // this.selections[0].end.x++;
-                // this.selections[0].end.y++;
            },
            onResize: function(){
                console.log('on resize');
                this.sheetHeight = this.$el.clientHeight;
+               this.gridRect = this.$el.querySelector('.v-sheet').getBoundingClientRect();
            },
-           getMousePosition: function(mouseX, mouseY, targetRect){
-                //let targetRect = target.getBoundingClientRect();
-                //let position = {};
-
-                let uppperEdge = targetRect.top;
-                let lowerEdge = targetRect.top + targetRect.height;
-                let leftEdge = targetRect.left;
-                let rightEdge = targetRect.left + targetRect.width;
-                
-                let result;
-                
-                
-               if(mouseX >= leftEdge && mouseX <= rightEdge && mouseY >= uppperEdge && mouseY <= lowerEdge){
-                   return 5;
-               }
-               else{
-                   if(mouseY < uppperEdge){
-                       if(mouseX < leftEdge){
-                           return 1;
-                       }
-                       else if (mouseX > rightEdge){
-                           return 3
-                       }
-                       else{
-                           return 2;
-                       }
-                   }
-                   else if(mouseY > lowerEdge){
-                       if(mouseX < leftEdge){
-                           return 7;
-                       }
-                       else if (mouseX > rightEdge){
-                           return 9
-                       }
-                       else{
-                           return 8;
-                       }
-                   }
-                    else{
-                        if(mouseX < leftEdge){
-                            return 4;
-                        }
-                        else{
-                                return 6;
-                        }    
-                    }
-  
-               }
+           withinRange: function(){
+               return this.selections[0].end.y >= 0 && 
+               this.selections[0].end.y <= this.source.length - 2 &&
+               this.selections[0].end.x >= 0 &&
+               this.selections[0].end.x <= Object.keys(this.source[0]).length
            }     
         }
     };
