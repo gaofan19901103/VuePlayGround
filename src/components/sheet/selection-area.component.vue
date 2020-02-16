@@ -25,7 +25,7 @@
                     let brY = Math.max(Number(slt.start.y), Number(slt.end.y));
                            
                     //let cell = this.$el.parentElement.querySelector(`[data-row="${tlX}"][data-col="${tlY}"]`);
-
+                    
 
                     areas.push({
                         key: index,
@@ -37,7 +37,7 @@
                         width: (brX - tlX + 1) * this.$parent.columnWidth
                     });
                 });
-                console.log('------top-------', areas[0].height);
+                //console.log('------top-------', areas[0].height);
                 return areas;
             }
         },

@@ -1,8 +1,8 @@
 <template>
   <div class="v-sheet-vessel" v-on-resize="onResize">
        
-    <div class="v-sheet" v-on:scroll="onScroll($event)">
-        <grid :virtual-list="virtualList" v-bind:grid-top="gridTop"></grid>    
+    <div class="v-sheet" v-on:scroll="onScroll($event)" ref="SheetEl">
+        <grid :virtual-list="virtualList" v-bind:grid-top="gridTop" ref="GridEl"></grid>    
         <selection-area :selections="selections"></selection-area>
         <div class="vault" :style="{ height: source.length * rowHeight + 'px' }"></div>
     </div>
@@ -23,7 +23,10 @@
         mounted: function(){
             let that = this;
             let vSheet = that.$el.querySelector('.v-sheet');
-            this.sheetHeight = this.$el.clientHeight; 
+            this.sheetEl = vSheet;
+            this.sheetHeight = this.$el.clientHeight;
+            this.rowCount = this.source.length;
+            this.colCount = Object.keys(this.source[0]).length;
 
             this.gridRect = this.$el.querySelector('.v-sheet').getBoundingClientRect();
              
@@ -40,8 +43,8 @@
                     that.selections = [];
                         
                     let dataAtt = e.target.dataset;
-                    rowIndex = dataAtt.row;
-                    columnIndex = dataAtt.col;
+                    rowIndex = Number(dataAtt.row);
+                    columnIndex = Number(dataAtt.col);
 
                     console.log('mouse down', rowIndex, columnIndex);
                         
@@ -57,8 +60,8 @@
                 function elementDrag(e) {
                     
                     //e.preventDefault();
-                                  
-                    let dataAtt = e.target.dataset;     
+                    console.debug('hovered over------>',e.target);             
+                         
                     let equrant = Portal.Utils.getMouseEqurant(e.pageX, e.pageY, that.gridRect);       
 
                     //if(that.$el.contains(e.target)){
@@ -67,11 +70,14 @@
                         clearInterval(that.onDragScroll);
                         that.onDragScroll = null;
 
-                        if(rowIndex != dataAtt.row || columnIndex != dataAtt.col){
+                        let dataAtt = e.target.dataset;
+
+                        if(dataAtt.row && dataAtt.col && (rowIndex != dataAtt.row || columnIndex != dataAtt.col)){
                             console.log('mouse moveing', e.target);
-                            
-                            rowIndex = dataAtt.row;
-                            columnIndex = dataAtt.col;
+                                                   
+                            rowIndex = Number(dataAtt.row);
+                            columnIndex = Number(dataAtt.col);
+
                             if(that.selections[0] && that.selections[0].end){ //this needs to be considered.
                                 that.selections[0].end.x = columnIndex;
                                 that.selections[0].end.y = rowIndex;
@@ -79,24 +85,67 @@
                         }
                     }
                     else{
-                        console.log('equrant: ' + equrant);                      
-                        if(equrant ==8){
-                            that.inDragScrolling = true;                          
+                        console.log('equrant: ' + equrant); 
+                        
+                        
+                        that.inDragScrolling = true;                                                 
+                        that.onDragScroll = that.onDragScroll || setInterval(function(){
+                            console.debug('------------interval');
+                            if(that.withinRange(equrant)){
+                                switch(equrant) {
+                                    case 1:
+                                        that.increase(-1, -1);
+                                        break;
+                                    case 2:
+                                        that.increase(-1, 0);
+                                        break;
+                                    case 3:
+                                        that.increase(-1, 1);
+                                        break;
+                                    case 4:
+                                        that.increase(0, -1);
+                                        break;
+                                    case 6:
+                                        that.increase(0, 1);
+                                        break;
+                                    case 7:
+                                        that.increase(1, -1);
+                                        break;
+                                    case 8:
+                                        that.increase(1, 0);
+                                        break;
+                                    case 9:
+                                        that.increase(1, 1); console.log('99999999');
+                                    default:
+                                        console.error('equrant not found...');
+                                        break;
+                                }
+                            }
+                            else{
+                                that.inDragScrolling = false;
+                                clearInterval(that.onDragScroll);
+                                that.onDragScroll = null;
+                            }
+                        }, 50);
+                        
+                        //--------------working one :                
+                        // if(equrant ==8){
+                        //     that.inDragScrolling = true;                          
                             
-                            that.onDragScroll = that.onDragScroll || setInterval(function(){
-                                console.debug('------------interval');
-                                if(that.withinRange()){
-                                    that.lastVirtualPosition = that.lastVirtualPosition + that.rowHeight;
-                                    that.selections[0].end.y ++;
-                                    vSheet.scrollBy(0, that.rowHeight);
-                                }
-                                else{
-                                    that.inDragScrolling = false;
-                                    clearInterval(that.onDragScroll);
-                                    that.onDragScroll = null;
-                                }
-                            }, 50);
-                        }                        
+                        //     that.onDragScroll = that.onDragScroll || setInterval(function(){
+                        //         console.debug('------------interval');
+                        //         if(that.withinRange()){
+                        //             that.lastVirtualPosition = that.lastVirtualPosition + that.rowHeight;
+                        //             that.selections[0].end.y ++;
+                        //             vSheet.scrollBy(0, that.rowHeight);
+                        //         }
+                        //         else{
+                        //             that.inDragScrolling = false;
+                        //             clearInterval(that.onDragScroll);
+                        //             that.onDragScroll = null;
+                        //         }
+                        //     }, 50);
+                        // }                        
                     }                   
                 }
 
@@ -118,6 +167,10 @@
         },
         data:function(){
             return{
+                sheetEl: null,
+                colCount: 0,
+                rowCount: 0,
+
                 indexedSource: this.source.map((x,y) => Object.assign(x, {rowIndex: y })),
 
                 lastVirtualPosition: 0,
@@ -166,11 +219,26 @@
                this.sheetHeight = this.$el.clientHeight;
                this.gridRect = this.$el.querySelector('.v-sheet').getBoundingClientRect();
            },
-           withinRange: function(){
-               return this.selections[0].end.y >= 0 && 
-               this.selections[0].end.y <= this.source.length - 2 &&
-               this.selections[0].end.x >= 0 &&
-               this.selections[0].end.x <= Object.keys(this.source[0]).length
+           withinRange: function(equrant){
+               if(equrant == 1 || equrant == 3 || equrant == 7 || equrant == 9){
+                    return (this.selections[0].end.y >= 0 && this.selections[0].end.y <= this.rowCount -2) || (this.selections[0].end.x >= 0 && this.selections[0].end.x <= this.colCount - 2);
+               }
+               else if(equrant == 2 || equrant == 8){
+                   return this.selections[0].end.y >= 0 && this.selections[0].end.y <= this.rowCount -2;
+               }
+               else if(equrant == 4 || equrant == 6){
+                   return this.selections[0].end.x >= 0 && this.selections[0].end.x <= this.colCount - 1;
+               }
+               else{
+                   return false;
+               }           
+           },
+           increase: function(row, col){   
+               this.selections[0].end.y = this.selections[0].end.y + row;
+               this.selections[0].end.x = this.selections[0].end.x + col;     
+         
+               this.lastVirtualPosition = this.lastVirtualPosition + row * this.rowHeight;
+               this.sheetEl.scrollBy(col * this.columnWidth, row * this.rowHeight);
            }     
         }
     };
