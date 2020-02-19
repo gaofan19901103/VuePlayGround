@@ -150,7 +150,7 @@
                                         that.increase(-1, 1);
                                         break;
                                     case 4:
-                                        that.increase(0, -1); console.log('1111111111111111');
+                                        that.increase(0, -1); 
                                         break;
                                     case 6:
                                         that.increase(0, 1);
@@ -162,7 +162,8 @@
                                         that.increase(1, 0);
                                         break;
                                     case 9:
-                                        that.increase(1, 1); console.log('99999999');
+                                        that.increase(1, 1); 
+                                        break;
                                     default:
                                         console.error('equrant not found...');
                                         break;
@@ -269,7 +270,40 @@
                this.sheetHeight = this.$el.clientHeight;
                this.gridRect = this.$el.querySelector('.v-sheet').getBoundingClientRect();
            },
-           withinRange: function(equrant){
+           withinRange: function(){
+               let valid = false;
+                console.log(this.currentEqurant, 'range range range');
+                switch(this.currentEqurant) {
+                    case 1:
+                        valid = this.selections[0].end.y > 0 && this.selections[0].end.x > 0;
+                        break;
+                    case 2:
+                        valid = this.selections[0].end.y > 0;
+                        break;
+                    case 3:
+                        valid = this.selections[0].end.y > 0 && this.selections[0].end.x < this.colCount - 1;
+                        break;
+                    case 4:
+                        valid = this.selections[0].end.x > 0;
+                        break;
+                    case 6:
+                        valid = this.selections[0].end.x < this.colCount - 1;
+                        break;
+                    case 7:
+                        valid = this.selections[0].end.y < this.rowCount - 1 && this.selections[0].end.x > 0;
+                        break;
+                    case 8:
+                        valid = this.selections[0].end.y < this.rowCount - 1;
+                        break;
+                    case 9:
+                        valid = this.selections[0].end.y < this.rowCount - 1 && this.selections[0].end.x < this.colCount - 1;
+                        break;
+                    default:
+                        console.error('equrant not found...');
+                        break;
+                }
+
+                return valid;
             //    if(equrant == 1 || equrant == 3 || equrant == 7 || equrant == 9){
             //         return (this.selections[0].end.y >= 0 && this.selections[0].end.y <= this.rowCount - 1) || (this.selections[0].end.x >= 0 && this.selections[0].end.x <= this.colCount - 1);
             //    }
@@ -281,32 +315,26 @@
             //    }
             //    else{
             //        return false;
-            //    }   
-            return true;        
+            //    }          
            },
            increase: function(row, col){   
-            //    if(this.selections[0].end.y >= 1 && this.selections[0].end.y <= this.rowCount -2){
+            //    if(this.selections[0].end.y >= 0 && this.selections[0].end.y < this.rowCount){
             //         this.selections[0].end.y = this.selections[0].end.y + row;
             //         this.lastVirtualPosition = this.lastVirtualPosition + row * this.rowHeight;
             //    } 
             //    console.log('22222222222',this.selections[0].end.x, col, this.selections[0].end.x >= 1 && this.selections[0].end.x <= this.colCount - 2, this.colCount);
-            //    if(this.selections[0].end.x >= 1 && this.selections[0].end.x <= this.colCount - 2){
+            //    if(this.selections[0].end.x >= 0 && this.selections[0].end.x <= this.colCount){
             //         this.selections[0].end.x = this.selections[0].end.x + col;
             //    }      
                        
 
-               if(this.selections[0].end.y >= 0 && this.selections[0].end.y <= this.rowCount){
-                    this.selections[0].end.y = this.selections[0].end.y + row;
-                    this.lastVirtualPosition = this.lastVirtualPosition + row * this.rowHeight;
-               } 
+            //     this.sheetEl.scrollBy(col * this.columnWidth, row * this.rowHeight);
 
-                console.log('22222222222',this.selections[0].end.x, col, this.selections[0].end.x >= 0 && this.selections[0].end.x <= this.colCount, this.colCount);
-
-               if(this.selections[0].end.x >= 0 && this.selections[0].end.x <= this.colCount){
-                    this.selections[0].end.x = this.selections[0].end.x + col >= this.colCount ? this.colCount : this.selections[0].end.x + col;
-               }      
-
-               this.sheetEl.scrollBy(col * this.columnWidth, row * this.rowHeight);
+               
+                this.selections[0].end.y = this.selections[0].end.y + row;
+                this.selections[0].end.x = this.selections[0].end.x + col;
+                this.lastVirtualPosition = this.lastVirtualPosition + row * this.rowHeight;                                                           
+                this.sheetEl.scrollBy(col * this.columnWidth, row * this.rowHeight);
            }     
         }
     };
