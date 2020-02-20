@@ -15,7 +15,7 @@
            gridTop: {type: Number, required: false, default: 0}
         },
         updated:function(){
-            console.log('gridTop has changed',this.gridTop);
+            //console.log('gridTop has changed',this.gridTop);
         }
     };
 </script>

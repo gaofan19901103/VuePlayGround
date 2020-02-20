@@ -7,7 +7,7 @@ Vue.directive('on-resize', {
     },
     bind: function (el, binding, vnode) {
         el._resizeObserver = new ResizeObserver(entries => {
-            console.log('I found you oh, little change ...');
+            //console.log('I found you oh, little change ...');
             binding.value();
         });
     },

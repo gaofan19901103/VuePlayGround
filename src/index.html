@@ -4,7 +4,7 @@
   </head>
   <body>
     <div id="app" >
-      <div style="height: 37px;" ref="test">{{testString }}</div>
+      <div style="height: 37px;" ref="test" id="headd" v-on:click="xxx">{{testString }}</div>
       <!-- <div style="display: flex; width: 520px; justify-content: center; flex-wrap: wrap; background-color: black;">
         <div style="width: 100%;display: flex;justify-content: center;margin-bottom: 16px;">
           <container message-title="MY PROTOFOLIO 2"
@@ -102,7 +102,7 @@
       </virtual-scroller> -->
 
       <!-- <grid :source="listSource"></grid> -->
-      <div style="height: 300px;">
+      <div style="height: 300px; width: 750px; margin-left: 300px;">
         <sheet :source="listSource"></sheet>
       </div>
      

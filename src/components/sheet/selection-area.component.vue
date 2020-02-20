@@ -19,10 +19,10 @@
 
                 this.selections.forEach((slt, index) =>{  
                     //tl: top-left,  br: bottom-left                
-                    let tlX = Math.min(Number(slt.start.x), Number(slt.end.x));
-                    let tlY = Math.min(Number(slt.start.y), Number(slt.end.y));
-                    let brX = Math.max(Number(slt.start.x), Number(slt.end.x));
-                    let brY = Math.max(Number(slt.start.y), Number(slt.end.y));
+                    let tlX = Math.min(Number(slt.start.col), Number(slt.end.col));
+                    let tlY = Math.min(Number(slt.start.row), Number(slt.end.row));
+                    let brX = Math.max(Number(slt.start.col), Number(slt.end.col));
+                    let brY = Math.max(Number(slt.start.row), Number(slt.end.row));
                            
                     //let cell = this.$el.parentElement.querySelector(`[data-row="${tlX}"][data-col="${tlY}"]`);
                     
