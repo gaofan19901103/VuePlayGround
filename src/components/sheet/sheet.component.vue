@@ -1,7 +1,7 @@
 <template>
   <div class="v-sheet-vessel" v-on-resize="onResize">
        
-    <div class="v-sheet" v-on:scroll="onScroll($event)" v-on:copy="onCopy"  ref="SheetEl">
+    <div class="v-sheet" v-on:scroll="onScroll($event)" v-on:copy="onCopy"  ref="SheetEl" v-on:contextmenu="onCopy">
         <grid :virtual-list="virtualList" v-bind:grid-top="gridTop" ref="GridEl"></grid>    
         <selection-area :selections="selections"></selection-area>
         <div class="vault" :style="{ height: source.length * rowHeight + 'px' }"></div>
@@ -142,6 +142,7 @@
             return{
                 //source
                 indexedSource: this.source.map((x,y) => Object.assign(x, {rowIndex: y })),
+                matrix: this.source.map(x => Object.keys(x).map(y => x[y])),
                 //sheet meta
                 sheetEl: null,
                 colCount: 0,
@@ -162,6 +163,7 @@
 
                 //cell selections
                 selections:[],
+                selectionMatrix: null,
                 currentSelectionIndex: 0
             }   
         },
@@ -203,29 +205,40 @@
                this.gridRect = this.$el.querySelector('.v-sheet').getBoundingClientRect();
            },     
            onCopy(){
-document.getSelection().removeAllRanges(); 
+            //     document.getSelection().removeAllRanges(); 
 
-                const copyToClipboard = str => {
-                    const el = document.createElement('textarea');
-                    el.value = str;
-                    el.setAttribute('readonly', '');
-                    el.style.position = 'absolute';
-                    el.style.left = '-9999px';
-                    document.body.appendChild(el);
-                    el.select();
-                    document.execCommand('copy');
-                    document.body.removeChild(el);
-                };
+            //     const copyToClipboard = str => {
+            //         const el = document.createElement('textarea');
+            //         el.value = str;
+            //         el.setAttribute('readonly', '');
+            //         el.style.position = 'absolute';
+            //         el.style.left = '-9999px';
+            //         document.body.appendChild(el);
+            //         el.select();
+            //         document.execCommand('copy');
+            //         document.body.removeChild(el);
+            //     };
 
-               console.log('on copy on copy');
-               var arr = [
-                ['A', 'B', 'C'],
-                ['D', 'Some\nlong\ntext', 'F'],
-                ['G', 'H', 'I']
-                ];
-               var str = SheetClip.stringify(arr);
+            //    console.log('on copy on copy');
+            //    var arr = [
+            //     ['A', 'B', 'C'],
+            //     ['D', 'Some\nlong\ntext', 'F'],
+            //     ['G', 'H', 'I']
+            //     ];
+            //    var str = SheetClip.stringify(arr);
 
-                copyToClipboard(str);
+            //     copyToClipboard(str);
+
+                let tlX = Math.min(Number(this.selections[this.currentSelectionIndex].start.col), Number(this.selections[this.currentSelectionIndex].end.col));
+                let tlY = Math.min(Number(this.selections[this.currentSelectionIndex].start.row), Number(this.selections[this.currentSelectionIndex].end.row));
+                let brX = Math.max(Number(this.selections[this.currentSelectionIndex].start.col), Number(this.selections[this.currentSelectionIndex].end.col));
+                let brY = Math.max(Number(this.selections[this.currentSelectionIndex].start.row), Number(this.selections[this.currentSelectionIndex].end.row));
+
+                let twoD = this.matrix.slice(tlY, brY + 1);
+                twoD = twoD.map(x => x.slice(tlX, brX + 1));
+                this.selectionMatrix = twoD;
+                this.buildString(twoD);
+                
            },   
            increase: function(row, col, equrant){     
                console.log('qurant',equrant);          
@@ -248,6 +261,18 @@ document.getSelection().removeAllRanges();
                     this.selections[this.currentSelectionIndex].end.col--;
                 } 
                 this.sheetEl.scrollBy(col * this.columnWidth, row * this.rowHeight);
+           },
+           buildString: function(twoDArray){
+
+                const tab = '\t';
+               const lb = '\n';
+            //    let tabAppender = (x, y) => x + '\t' + y;
+
+            //    let x = twoDArray.reduce((a,b) => a + b.reduce(tabAppender) + lb,'');
+               let tabAppender = (x, y) => x + '\t' + y;
+               let result = twoDArray.reduce((initial, accumulate) =>{
+                  return initial + accumulate.reduce(tabAppender) + '\n';
+               }, ''); 
            }     
         }
     };
