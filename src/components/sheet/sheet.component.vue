@@ -1,7 +1,7 @@
 <template>
   <div class="v-sheet-vessel" v-on-resize="onResize">
        
-    <div class="v-sheet" v-on:scroll="onScroll($event)" v-on:copy="onCopy"  ref="SheetEl" v-on:contextmenu="onCopy">
+    <div class="v-sheet" v-on:scroll="onScroll($event)" v-on:copy="onCopy" v-on:keydown="onKeyDown($event)"  tabindex="0" ref="SheetEl"  >
         <grid :virtual-list="virtualList" v-bind:grid-top="gridTop" ref="GridEl"></grid>    
         <selection-area :selections="selections"></selection-area>
         <div class="vault" :style="{ height: source.length * rowHeight + 'px' }"></div>
@@ -36,7 +36,11 @@
                 elmnt.onmousedown = dragMouseDown;
                 
                 function dragMouseDown(e) {
-                    e.preventDefault();
+                    //e.preventDefault();
+
+                    if (e.shiftKey && e.which == 1) {
+                        let x = 0;
+                    }
 
                     rowIndex = null;
                     columnIndex = null;
@@ -59,7 +63,7 @@
 
                 function elementDrag(e) {
                     
-                    //e.preventDefault();
+                    e.preventDefault();
                     //console.debug('hovered over------>',e.target);             
                          
                     that.currentEqurant = Portal.Utils.getMouseEqurant(e.pageX, e.pageY, that.gridRect);       
@@ -188,6 +192,7 @@
                 return _gridTop;
             }  
         },
+
         watch:{
            
         },
@@ -207,17 +212,17 @@
            onCopy(){
             //     document.getSelection().removeAllRanges(); 
 
-            //     const copyToClipboard = str => {
-            //         const el = document.createElement('textarea');
-            //         el.value = str;
-            //         el.setAttribute('readonly', '');
-            //         el.style.position = 'absolute';
-            //         el.style.left = '-9999px';
-            //         document.body.appendChild(el);
-            //         el.select();
-            //         document.execCommand('copy');
-            //         document.body.removeChild(el);
-            //     };
+                const copyToClipboard = str => {
+                    const el = document.createElement('textarea');
+                    el.value = str;
+                    el.setAttribute('readonly', '');
+                    el.style.position = 'absolute';
+                    el.style.left = '-9999px';
+                    document.body.appendChild(el);
+                    el.select();
+                    document.execCommand('copy');
+                    document.body.removeChild(el);
+                };
 
             //    console.log('on copy on copy');
             //    var arr = [
@@ -237,8 +242,8 @@
                 let twoD = this.matrix.slice(tlY, brY + 1);
                 twoD = twoD.map(x => x.slice(tlX, brX + 1));
                 this.selectionMatrix = twoD;
-                this.buildString(twoD);
-                
+                let content = this.buildString(twoD);
+                copyToClipboard(content);
            },   
            increase: function(row, col, equrant){     
                console.log('qurant',equrant);          
@@ -263,16 +268,29 @@
                 this.sheetEl.scrollBy(col * this.columnWidth, row * this.rowHeight);
            },
            buildString: function(twoDArray){
-
-                const tab = '\t';
+               const tab = '\t';
                const lb = '\n';
-            //    let tabAppender = (x, y) => x + '\t' + y;
+               return twoDArray.reduce((a,b) => `${a}${b.reduce((c,d) =>`${c}${tab}${d}`)}${lb}`,'');
+             //  let tabAppender = (x, y) => x + '\t' + y;
+            //    let result = twoDArray.reduce((initial, accumulate) =>{
+            //       return initial + accumulate.reduce(tabAppender) + '\n';
+            //    }, ''); 
+           },
+           onKeyDown: function(event){
 
-            //    let x = twoDArray.reduce((a,b) => a + b.reduce(tabAppender) + lb,'');
-               let tabAppender = (x, y) => x + '\t' + y;
-               let result = twoDArray.reduce((initial, accumulate) =>{
-                  return initial + accumulate.reduce(tabAppender) + '\n';
-               }, ''); 
+                if (event.ctrlKey  &&  event.key === "c") { 
+                               let x = 0;    
+                }
+
+                if (event.ctrlKey  &&  event.key === "a") { 
+                    event.preventDefault();
+                    this.currentSelectionIndex = 0;
+                    this.selections.splice(1);
+                    this.selections[0].start.row = 0;
+                    this.selections[0].start.col = 0;
+                    this.selections[0].end.row = this.rowCount - 1;
+                    this.selections[0].end.col = this.colCount - 1;
+                }
            }     
         }
     };
@@ -300,6 +318,7 @@
             // max-height: 100%;       
             // max-width: 100%;
             overflow: auto;
+            outline: none;
             
             font-size: var(--sheet-font-size);
             background-color: var(--sheet-background-color);
