@@ -37,6 +37,20 @@ window.Portal.Utils.getMouseEqurant = function (mouseX, mouseY, targetRect) {
     }
 }
 
+window.Portal.Utils.copyToClipboard = function(str){
+    //document.getSelection().removeAllRanges(); 
+
+    const el = document.createElement('textarea');
+    el.value = str;
+    el.setAttribute('readonly', '');
+    el.style.position = 'absolute';
+    el.style.left = '-9999px';
+    document.body.appendChild(el);
+    el.select();
+    document.execCommand('copy');
+    document.body.removeChild(el);
+}
+
 window.Portal.Utils.Tooltip.getTooltipPosition = function (target, tooltipBox) {
     const _arrowSize = 4;
     const _arrowMargin = 2;

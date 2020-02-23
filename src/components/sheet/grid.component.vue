@@ -1,5 +1,5 @@
 <template>
-   <div class="v-grid" :style="{ top: gridTop + 'px'}">
+   <div class="v-grid" :style="{ top: gridTop + 'px'}" ref="GridEl">
         <div class="grid-row" v-for="item in virtualList" v-bind:key="item.key">
             <div class="grid-column grid-cell" v-for="(col, col_index) in Object.keys(item)" v-bind:key="col" :data-col="col_index" :data-row="item.rowIndex">
                 {{item[col]}} 
@@ -14,7 +14,12 @@
            virtualList: {type: Array, required: false, default: [] },
            gridTop: {type: Number, required: false, default: 0}
         },
+        mounted: function(){
+           this.$refs.GridEl.style.setProperty('--row-height', this.$parent.rowHeight + 'px');
+           this.$refs.GridEl.style.setProperty('--col-width', this.$parent.columnWidth + 'px');
+        },
         updated:function(){
+            //to reset row col if there is a change.
             //console.log('gridTop has changed',this.gridTop);
         }
     };

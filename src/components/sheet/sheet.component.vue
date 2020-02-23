@@ -2,7 +2,7 @@
   <div class="v-sheet-vessel" v-on-resize="onResize">
        
     <div class="v-sheet" v-on:scroll="onScroll($event)" v-on:keydown="onKeyDown($event)"  tabindex="0" ref="SheetEl"  >
-        <grid :virtual-list="virtualList" v-bind:grid-top="gridTop" ref="GridEl"></grid>    
+        <grid :virtual-list="virtualList" v-bind:grid-top="gridTop"></grid>    
         <selection-area :selections="selections"></selection-area>
         <div class="vault" :style="{ height: source.length * rowHeight + 'px' }"></div>
     </div>
@@ -27,6 +27,7 @@
             this.sheetHeight = this.$el.clientHeight;
             this.rowCount = this.source.length;
             this.colCount = Object.keys(this.source[0]).length;
+            
 
             // \\this.sheetEl.style.width = this.colCount * this.columnWidth + 17 + 'px';
             this.gridRect = this.$el.querySelector('.v-sheet').getBoundingClientRect();
@@ -38,10 +39,10 @@
                 elmnt.onmousedown = dragMouseDown;
                 
                 function dragMouseDown(e) {
-                    e.preventDefault();
+                    //
                     
                     let dataSet = e.target.dataset;
-                    if(dataSet.row == 'undefined' || dataSet.col == 'undefined') console.error('which cell it is ???');
+                    if(dataSet.row == 'undefined' || dataSet.col == 'undefined') console.error('which cell is it???');
 
                     rowIndex = Number(dataSet.row);
                     columnIndex = Number(dataSet.col);
@@ -49,19 +50,30 @@
                     
                     if (e.which == 1) {
                         if(e.shiftKey){
+                            e.preventDefault();
                             that.selections[that.currentSelectionIndex].end.row = rowIndex;
                             that.selections[that.currentSelectionIndex].end.col = columnIndex;
                         }
                         else{
+                            if(e.ctrlKey){
+                                that.currentSelectionIndex++;
+                                that.selections = that.selections.concat([{start:{row: 0, col: 0}, end:{row: 0, col: 0}}]);
+                            }
+                            else{
+                                that.selections.splice(1);
+                                that.currentSelectionIndex = 0;
+                            }
+
                             that.selections[that.currentSelectionIndex].start.row = rowIndex;
                             that.selections[that.currentSelectionIndex].start.col = columnIndex;
                             that.selections[that.currentSelectionIndex].end.row = rowIndex;
                             that.selections[that.currentSelectionIndex].end.col = columnIndex;
                         }
-                      
-                        document.onmouseup = closeDragElement;                 
+                                
                         document.onmousemove = elementDrag;
-                    }                                               
+                    }
+                    
+                    document.onmouseup = closeDragElement;     
                 }
 
                 function elementDrag(e) {
@@ -212,31 +224,7 @@
                this.sheetHeight = this.$el.clientHeight;
                this.gridRect = this.$el.querySelector('.v-sheet').getBoundingClientRect();
            },     
-           onCopy(){
-            //     document.getSelection().removeAllRanges(); 
-
-                const copyToClipboard = str => {
-                    const el = document.createElement('textarea');
-                    el.value = str;
-                    el.setAttribute('readonly', '');
-                    el.style.position = 'absolute';
-                    el.style.left = '-9999px';
-                    document.body.appendChild(el);
-                    el.select();
-                    document.execCommand('copy');
-                    document.body.removeChild(el);
-                };
-
-            //    console.log('on copy on copy');
-            //    var arr = [
-            //     ['A', 'B', 'C'],
-            //     ['D', 'Some\nlong\ntext', 'F'],
-            //     ['G', 'H', 'I']
-            //     ];
-            //    var str = SheetClip.stringify(arr);
-
-            //     copyToClipboard(str);
-
+           copyCurrentSelection(){
                 let tlX = Math.min(Number(this.selections[this.currentSelectionIndex].start.col), Number(this.selections[this.currentSelectionIndex].end.col));
                 let tlY = Math.min(Number(this.selections[this.currentSelectionIndex].start.row), Number(this.selections[this.currentSelectionIndex].end.row));
                 let brX = Math.max(Number(this.selections[this.currentSelectionIndex].start.col), Number(this.selections[this.currentSelectionIndex].end.col));
@@ -246,29 +234,29 @@
                 twoD = twoD.map(x => x.slice(tlX, brX + 1));
                 this.selectionMatrix = twoD;
                 let content = this.buildString(twoD);
-                copyToClipboard(content);
+                Portal.Utils.copyToClipboard(content);
            },   
-           increase: function(row, col, equrant){     
-               console.log('qurant',equrant);          
-                this.selections[this.currentSelectionIndex].end.row = this.selections[this.currentSelectionIndex].end.row + row;
-                this.selections[this.currentSelectionIndex].end.col = this.selections[this.currentSelectionIndex].end.col + col;
-                this.lastVirtualPosition = this.lastVirtualPosition + row * this.rowHeight;                                                           
+           increase: function(rowIncrement, colIncrement, scroll = true, where = 'end'){              
+                this.selections[this.currentSelectionIndex][where].row = this.selections[this.currentSelectionIndex][where].row + rowIncrement;
+                this.selections[this.currentSelectionIndex][where].col = this.selections[this.currentSelectionIndex][where].col + colIncrement;
+                if(scroll) this.lastVirtualPosition = this.lastVirtualPosition + rowIncrement * this.rowHeight;                                                           
                 
-                if(this.selections[this.currentSelectionIndex].end.row < 0) {
-                    this.selections[this.currentSelectionIndex].end.row++;
+                if(this.selections[this.currentSelectionIndex][where].row < 0) {
+                    this.selections[this.currentSelectionIndex][where].row++;
                     this.lastVirtualPosition = this.lastVirtualPosition + this.rowHeight; 
                 }
-                if(this.selections[this.currentSelectionIndex].end.row > this.rowCount - 1){
-                    this.selections[this.currentSelectionIndex].end.row--;
+                if(this.selections[this.currentSelectionIndex][where].row > this.rowCount - 1){
+                    this.selections[this.currentSelectionIndex][where].row--;
                     this.lastVirtualPosition = this.lastVirtualPosition - this.rowHeight; 
                 } 
-                if(this.selections[this.currentSelectionIndex].end.col < 0) {
-                    this.selections[this.currentSelectionIndex].end.col++;
+                if(this.selections[this.currentSelectionIndex][where].col < 0) {
+                    this.selections[this.currentSelectionIndex][where].col++;
                 }
-                if(this.selections[this.currentSelectionIndex].end.col > this.colCount - 1){
-                    this.selections[this.currentSelectionIndex].end.col--;
+                if(this.selections[this.currentSelectionIndex][where].col > this.colCount - 1){
+                    this.selections[this.currentSelectionIndex][where].col--;
                 } 
-                this.sheetEl.scrollBy(col * this.columnWidth, row * this.rowHeight);
+
+                if(scroll) this.sheetEl.scrollBy(colIncrement * this.columnWidth, rowIncrement * this.rowHeight);
            },
            buildString: function(twoDArray){
                const tab = '\t';
@@ -280,9 +268,8 @@
             //    }, ''); 
            },
            onKeyDown: function(event){
-
                 if (event.ctrlKey  &&  event.key === "c") { 
-                    this.onCopy(); 
+                    this.copyCurrentSelection(); 
                 }
 
                 if (event.ctrlKey  &&  event.key === "a") { 
@@ -293,6 +280,53 @@
                     this.selections[0].start.col = 0;
                     this.selections[0].end.row = this.rowCount - 1;
                     this.selections[0].end.col = this.colCount - 1;
+                }
+
+                if (event.key.startsWith('Arrow')) {
+                    event.preventDefault();
+                    let rowIncrement = 0;
+                    let colIncrement = 0;
+                    let scroll = false;
+                    let endCell = this.selections[this.currentSelectionIndex].end;
+                    let cellRect = null;
+
+                    if(event.key == 'ArrowUp'){
+                        rowIncrement = -1;
+                        let cellEL = this.sheetEl.querySelector(`[data-row="${endCell.row + rowIncrement}"][data-col="${endCell.col + colIncrement}"]`);
+                        cellRect = cellEL && cellEL.getBoundingClientRect();
+                        scroll = cellRect && this.gridRect.top > cellRect.top;
+                    } 
+                    else if(event.key == 'ArrowDown'){
+                        rowIncrement = 1;
+                        let cellEL = this.sheetEl.querySelector(`[data-row="${endCell.row + rowIncrement}"][data-col="${endCell.col + colIncrement}"]`);
+                        cellRect = cellEL && cellEL.getBoundingClientRect();
+                        scroll = cellRect && this.gridRect.top + this.gridRect.height < cellRect.top + cellRect.height;
+                    } 
+                    else if(event.key == 'ArrowLeft'){
+                        colIncrement = -1;
+                        let cellEL = this.sheetEl.querySelector(`[data-row="${endCell.row + rowIncrement}"][data-col="${endCell.col + colIncrement}"]`);
+                        cellRect = cellEL && cellEL.getBoundingClientRect();
+                        scroll = cellRect && this.gridRect.left > cellRect.left;
+                    } 
+                    else if(event.key == 'ArrowRight'){
+                        colIncrement = 1;
+                        let cellEL = this.sheetEl.querySelector(`[data-row="${endCell.row + rowIncrement}"][data-col="${endCell.col + colIncrement}"]`);
+                        cellRect = cellEL && cellEL.getBoundingClientRect();
+                        scroll = cellRect && this.gridRect.left + this.gridRect.width < cellRect.left + cellRect.width;
+                    } 
+                    else{
+                        throw 'key not found...'; 
+                    }
+
+                    if(event.shiftKey){
+                        if(cellRect) this.increase(rowIncrement, colIncrement, scroll);
+                    }
+                    else{
+                        if(cellRect) this.increase(rowIncrement, colIncrement, scroll, 'start');
+                        let startCell = this.selections[this.currentSelectionIndex].start;
+                        endCell.row = startCell.row;
+                        endCell.col = startCell.col;
+                    }
                 }
            }     
         }
