@@ -1,7 +1,7 @@
 <template>
   <div class="v-sheet-vessel" v-on-resize="onResize">
        
-    <div class="v-sheet" v-on:scroll="onScroll($event)" v-on:copy="onCopy" v-on:keydown="onKeyDown($event)"  tabindex="0" ref="SheetEl"  >
+    <div class="v-sheet" v-on:scroll="onScroll($event)" v-on:keydown="onKeyDown($event)"  tabindex="0" ref="SheetEl"  >
         <grid :virtual-list="virtualList" v-bind:grid-top="gridTop" ref="GridEl"></grid>    
         <selection-area :selections="selections"></selection-area>
         <div class="vault" :style="{ height: source.length * rowHeight + 'px' }"></div>
@@ -28,37 +28,40 @@
             this.rowCount = this.source.length;
             this.colCount = Object.keys(this.source[0]).length;
 
+            // \\this.sheetEl.style.width = this.colCount * this.columnWidth + 17 + 'px';
             this.gridRect = this.$el.querySelector('.v-sheet').getBoundingClientRect();
              
             function dragElement(elmnt) {
-                var rowIndex, columnIndex;
-
+                var rowIndex = null;
+                var columnIndex = null;
+                
                 elmnt.onmousedown = dragMouseDown;
                 
                 function dragMouseDown(e) {
-                    //e.preventDefault();
+                    e.preventDefault();
+                    
+                    let dataSet = e.target.dataset;
+                    if(dataSet.row == 'undefined' || dataSet.col == 'undefined') console.error('which cell it is ???');
 
-                    if (e.shiftKey && e.which == 1) {
-                        let x = 0;
-                    }
-
-                    rowIndex = null;
-                    columnIndex = null;
-                    that.selections = [];
-                        
-                    let dataAtt = e.target.dataset;
-                    rowIndex = Number(dataAtt.row);
-                    columnIndex = Number(dataAtt.col);
-
+                    rowIndex = Number(dataSet.row);
+                    columnIndex = Number(dataSet.col);
                     console.log('mouse down', rowIndex, columnIndex);
-                        
-                    that.selections.push({
-                        start: {col: columnIndex, row: rowIndex}, 
-                        end: {col: columnIndex, row: rowIndex}
-                    });
-
-                    document.onmouseup = closeDragElement;                 
-                    document.onmousemove = elementDrag;
+                    
+                    if (e.which == 1) {
+                        if(e.shiftKey){
+                            that.selections[that.currentSelectionIndex].end.row = rowIndex;
+                            that.selections[that.currentSelectionIndex].end.col = columnIndex;
+                        }
+                        else{
+                            that.selections[that.currentSelectionIndex].start.row = rowIndex;
+                            that.selections[that.currentSelectionIndex].start.col = columnIndex;
+                            that.selections[that.currentSelectionIndex].end.row = rowIndex;
+                            that.selections[that.currentSelectionIndex].end.col = columnIndex;
+                        }
+                      
+                        document.onmouseup = closeDragElement;                 
+                        document.onmousemove = elementDrag;
+                    }                                               
                 }
 
                 function elementDrag(e) {
@@ -74,13 +77,13 @@
                         clearInterval(that.onDragScroll);
                         that.onDragScroll = null;
 
-                        let dataAtt = e.target.dataset;
+                        let dataSet = e.target.dataset;
 
-                        if(dataAtt.row && dataAtt.col && (rowIndex != dataAtt.row || columnIndex != dataAtt.col)){
+                        if(dataSet.row && dataSet.col && (rowIndex != dataSet.row || columnIndex != dataSet.col)){
                             console.log('mouse moveing', e.target);
                                                    
-                            rowIndex = Number(dataAtt.row);
-                            columnIndex = Number(dataAtt.col);
+                            rowIndex = Number(dataSet.row);
+                            columnIndex = Number(dataSet.col);
 
                             if(that.selections[that.currentSelectionIndex] && that.selections[that.currentSelectionIndex].end){ //this needs to be considered.
                                 that.selections[that.currentSelectionIndex].end.col = columnIndex;
@@ -166,7 +169,7 @@
                 currentEqurant: 0,
 
                 //cell selections
-                selections:[],
+                selections:[{start:{row: 0, col: 0}, end:{row: 0, col: 0}}],
                 selectionMatrix: null,
                 currentSelectionIndex: 0
             }   
@@ -279,7 +282,7 @@
            onKeyDown: function(event){
 
                 if (event.ctrlKey  &&  event.key === "c") { 
-                               let x = 0;    
+                    this.onCopy(); 
                 }
 
                 if (event.ctrlKey  &&  event.key === "a") { 
