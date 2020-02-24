@@ -27,7 +27,7 @@ Vue.component('sheet', sheet);
 var list = [];
 
 for(let i = 0; i < 1000; i ++){
-    list.push({id: i, rt: '01-AUG-19', vt:'02-AUG-19', currency: 'USD', product:'FRA', tenor:'3M', status:'Open'});
+    list.push({id: i, rt: '01-AUG-19', vt:'02-AUG-19', rate: '1.234567', currency: 'USD', product:'FRA', tenor:'3M', status:'Open'});
 }
 
 window.myVue = new Vue({
