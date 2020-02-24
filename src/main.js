@@ -49,84 +49,46 @@ window.myVue = new Vue({
   }
 });
 
-// window.testVue = new Vue(
-//   {
-//     el:'#hhh'
-//   }
-// );
+var testEl = document.getElementById("main-container");
+var dragEl = document.getElementById("drag");
 
-(function (global) {
-  "use strict";
+dragElement(dragEl);
 
-  function countQuotes(str) {
-    return str.split('"').length - 1;
+function dragElement(elmnt) {
+  var pos1 = 0, pos2 = 0, pos3 = 0, pos4 = 0;
+
+  elmnt.onmousedown = dragMouseDown;
+  
+
+  function dragMouseDown(e) {
+    e = e || window.event;
+    e.preventDefault();
+    // get the mouse cursor position at startup:
+    pos3 = e.clientX;
+    pos4 = e.clientY;
+    document.onmouseup = closeDragElement;
+    // call a function whenever the cursor moves:
+    document.onmousemove = elementDrag;
   }
 
-  global.SheetClip = {
-    parse: function (str) {
-      var r, rlen, rows, arr = [], a = 0, c, clen, multiline, last;
-      rows = str.split('\n');
-      if (rows.length > 1 && rows[rows.length - 1] === '') {
-        rows.pop();
-      }
-      for (r = 0, rlen = rows.length; r < rlen; r += 1) {
-        rows[r] = rows[r].split('\t');
-        for (c = 0, clen = rows[r].length; c < clen; c += 1) {
-          if (!arr[a]) {
-            arr[a] = [];
-          }
-          if (multiline && c === 0) {
-            last = arr[a].length - 1;
-            arr[a][last] = arr[a][last] + '\n' + rows[r][0];
-            if (multiline && (countQuotes(rows[r][0]) & 1)) { //& 1 is a bitwise way of performing mod 2
-              multiline = false;
-              arr[a][last] = arr[a][last].substring(0, arr[a][last].length - 1).replace(/""/g, '"');
-            }
-          }
-          else {
-            if (c === clen - 1 && rows[r][c].indexOf('"') === 0 && (countQuotes(rows[r][c]) & 1)) {
-              arr[a].push(rows[r][c].substring(1).replace(/""/g, '"'));
-              multiline = true;
-            }
-            else {
-              arr[a].push(rows[r][c].replace(/""/g, '"'));
-              multiline = false;
-            }
-          }
-        }
-        if (!multiline) {
-          a += 1;
-        }
-      }
-      return arr;
-    },
+  function elementDrag(e) {
+    e = e || window.event;
+    e.preventDefault();
+    // calculate the new cursor position:
+    pos1 = e.clientX - pos3;
+    pos2 = e.clientY - pos4;
+    pos3 = e.clientX;
+    pos4 = e.clientY;
+    // set the element's new position:
+    testEl.style.width = testEl.getBoundingClientRect().width + pos1 + 'px';
+    testEl.style.height = testEl.getBoundingClientRect().height + pos2 + 'px';
+    // elmnt.style.top = (elmnt.offsetTop - pos2) + "px";
+    // elmnt.style.left = (elmnt.offsetLeft - pos1) + "px";
+  }
 
-    stringify: function (arr) {
-      var r, rlen, c, clen, str = '', val;
-      for (r = 0, rlen = arr.length; r < rlen; r += 1) {
-        for (c = 0, clen = arr[r].length; c < clen; c += 1) {
-          if (c > 0) {
-            str += '\t';
-          }
-          val = arr[r][c];
-          if (typeof val === 'string') {
-            if (val.indexOf('\n') > -1) {
-              str += '"' + val.replace(/"/g, '""') + '"';
-            }
-            else {
-              str += val;
-            }
-          }
-          else if (val === null || val === void 0) { //void 0 resolves to undefined
-            str += '';
-          }
-          else {
-            str += val;
-          }
-        }
-        str += '\n';
-      }
-      return str;
-    }
-  };
-}(window));
+  function closeDragElement() {
+    // stop moving when mouse button is released:
+    document.onmouseup = null;
+    document.onmousemove = null;
+  }
+}

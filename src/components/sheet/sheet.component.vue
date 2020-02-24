@@ -1,8 +1,8 @@
 <template>
   <div class="v-sheet-vessel" v-on-resize="onResize">
-       
-    <div class="v-sheet" v-on:scroll="onScroll($event)" v-on:keydown="onKeyDown($event)"  tabindex="0" ref="SheetEl"  >
-        <grid :virtual-list="virtualList" v-bind:grid-top="gridTop"></grid>    
+
+    <div class="v-sheet" @scroll="onScroll($event)" @keydown="onKeyDown($event)" @contextmenu.prevent="onMenu" tabindex="0" ref="SheetEl">
+        <grid :virtual-list="virtualList" :grid-top="gridTop"></grid>    
         <selection-area :selections="selections"></selection-area>
         <div class="vault" :style="{ height: source.length * rowHeight + 'px' }"></div>
     </div>
@@ -26,28 +26,27 @@
             this.sheetEl = vSheet;
             this.sheetHeight = this.$el.clientHeight;
             this.rowCount = this.source.length;
-            this.colCount = Object.keys(this.source[0]).length;
-            
-
+            this.colCount = Object.keys(this.source[0]).length;          
             // \\this.sheetEl.style.width = this.colCount * this.columnWidth + 17 + 'px';
             this.gridRect = this.$el.querySelector('.v-sheet').getBoundingClientRect();
              
-            function dragElement(elmnt) {
+            function dragSelect(elmnt) {
                 var rowIndex = null;
                 var columnIndex = null;
                 
-                elmnt.onmousedown = dragMouseDown;
+                elmnt.onmousedown = startDrag;
                 
-                function dragMouseDown(e) {
-                    //
+                function startDrag(e) {
+                
+                    if(e.which == 3) return;
                     
                     let dataSet = e.target.dataset;
                     if(dataSet.row == 'undefined' || dataSet.col == 'undefined') console.error('which cell is it???');
 
                     rowIndex = Number(dataSet.row);
                     columnIndex = Number(dataSet.col);
-                    console.log('mouse down', rowIndex, columnIndex);
-                    
+                    console.log('mouse down', rowIndex, columnIndex);                   
+
                     if (e.which == 1) {
                         if(e.shiftKey){
                             e.preventDefault();
@@ -70,17 +69,16 @@
                             that.selections[that.currentSelectionIndex].end.col = columnIndex;
                         }
                                 
-                        document.onmousemove = elementDrag;
+                        document.onmousemove = dragging;
                     }
                     
-                    document.onmouseup = closeDragElement;     
+                    document.onmouseup = endDrag;     
                 }
 
-                function elementDrag(e) {
+                function dragging(e) {
                     
                     e.preventDefault();
-                    //console.debug('hovered over------>',e.target);             
-                         
+
                     that.currentEqurant = Portal.Utils.getMouseEqurant(e.pageX, e.pageY, that.gridRect);       
                     console.log('--------------equrant',  that.currentEqurant);
                     if(that.currentEqurant == 5){
@@ -109,28 +107,28 @@
                             console.log('setTimeInterval triggered');                       
                                 switch(that.currentEqurant) {
                                     case 1:
-                                        that.increase(-1, -1, that.currentEqurant);
+                                        that.expandSelection(-1, -1);
                                         break;
                                     case 2:
-                                        that.increase(-1, 0, that.currentEqurant);
+                                        that.expandSelection(-1, 0);
                                         break;
                                     case 3:
-                                        that.increase(-1, 1, that.currentEqurant);
+                                        that.expandSelection(-1, 1);
                                         break;
                                     case 4:
-                                        that.increase(0, -1, that.currentEqurant); 
+                                        that.expandSelection(0, -1); 
                                         break;
                                     case 6:
-                                        that.increase(0, 1, that.currentEqurant);
+                                        that.expandSelection(0, 1);
                                         break;
                                     case 7:
-                                        that.increase(1, -1, that.currentEqurant);
+                                        that.expandSelection(1, -1);
                                         break;
                                     case 8:
-                                        that.increase(1, 0, that.currentEqurant);
+                                        that.expandSelection(1, 0);
                                         break;
                                     case 9:
-                                        that.increase(1, 1, that.currentEqurant); 
+                                        that.expandSelection(1, 1); 
                                         break;
                                     default:
                                         console.error('equrant not found...');
@@ -140,7 +138,7 @@
                     }                   
                 }
 
-                function closeDragElement(e) {
+                function endDrag(e) {
                     console.log('cancel ----------------- interval');
                     that.inDragScrolling = false;
                     clearInterval(that.onDragScroll);
@@ -150,7 +148,7 @@
                 }       
             }
 
-            dragElement(vSheet);
+            dragSelect(vSheet);
         },
         props:{
             source: {type: Array, required: true }, 
@@ -159,18 +157,19 @@
         },
         data:function(){
             return{
-                //source
+                //source data
                 indexedSource: this.source.map((x,y) => Object.assign(x, {rowIndex: y })),
                 matrix: this.source.map(x => Object.keys(x).map(y => x[y])),
+
                 //sheet meta
                 sheetEl: null,
+                sheetHeight: 0,
+                gridRect: null,
                 colCount: 0,
                 rowCount: 0,
 
                 //virtual scroll
                 lastVirtualPosition: 0,
-                sheetHeight: 0,
-                gridRect: null,
                 virtualBuffer: 5, 
                      
                 //drag scroll
@@ -199,11 +198,8 @@
                 return result;
             },
             gridTop: function(){ //depends on lastVirtualPostion
-
                 let _gridTop = (this.lastVirtualPosition - this.virtualBuffer * this.rowHeight) < 0 ? 0 : (this.lastVirtualPosition - this.virtualBuffer * this.rowHeight);
-                _gridTop = _gridTop - (_gridTop % this.rowHeight); //even myself doesn't know why ....
-                
-                console.log('_gridtop', _gridTop);
+                _gridTop = _gridTop - (_gridTop % this.rowHeight); 
                 return _gridTop;
             }  
         },
@@ -225,6 +221,8 @@
                this.gridRect = this.$el.querySelector('.v-sheet').getBoundingClientRect();
            },     
            copyCurrentSelection(){
+                let timerBefore = performance.now();
+
                 let tlX = Math.min(Number(this.selections[this.currentSelectionIndex].start.col), Number(this.selections[this.currentSelectionIndex].end.col));
                 let tlY = Math.min(Number(this.selections[this.currentSelectionIndex].start.row), Number(this.selections[this.currentSelectionIndex].end.row));
                 let brX = Math.max(Number(this.selections[this.currentSelectionIndex].start.col), Number(this.selections[this.currentSelectionIndex].end.col));
@@ -235,8 +233,11 @@
                 this.selectionMatrix = twoD;
                 let content = this.buildString(twoD);
                 Portal.Utils.copyToClipboard(content);
+
+                let timerAfter = performance.now();
+                console.info(`copy used ${Math.ceil(timerAfter - timerBefore)} milliseconds`);
            },   
-           increase: function(rowIncrement, colIncrement, scroll = true, where = 'end'){              
+           expandSelection: function(rowIncrement, colIncrement, scroll = true, where = 'end'){              
                 this.selections[this.currentSelectionIndex][where].row = this.selections[this.currentSelectionIndex][where].row + rowIncrement;
                 this.selections[this.currentSelectionIndex][where].col = this.selections[this.currentSelectionIndex][where].col + colIncrement;
                 if(scroll) this.lastVirtualPosition = this.lastVirtualPosition + rowIncrement * this.rowHeight;                                                           
@@ -258,14 +259,17 @@
 
                 if(scroll) this.sheetEl.scrollBy(colIncrement * this.columnWidth, rowIncrement * this.rowHeight);
            },
-           buildString: function(twoDArray){
+           buildString: function(twoDArray, withStyle){
                const tab = '\t';
                const lb = '\n';
-               return twoDArray.reduce((a,b) => `${a}${b.reduce((c,d) =>`${c}${tab}${d}`)}${lb}`,'');
-             //  let tabAppender = (x, y) => x + '\t' + y;
-            //    let result = twoDArray.reduce((initial, accumulate) =>{
-            //       return initial + accumulate.reduce(tabAppender) + '\n';
-            //    }, ''); 
+
+               if(withStyle)
+                    return '';//build up <table> with style getting from css variables. 
+               else
+                    return twoDArray.reduce((a,b) => `${a}${b.reduce((c,d) =>`${c}${tab}${d}`)}${lb}`,'');
+           },
+           onMenu: function(event){
+               // put menu here if needed.
            },
            onKeyDown: function(event){
                 if (event.ctrlKey  &&  event.key === "c") { 
@@ -286,7 +290,8 @@
                     event.preventDefault();
                     let rowIncrement = 0;
                     let colIncrement = 0;
-                    let scroll = false;
+                    let scroll = false;             
+                    //let startCell = this.selections[this.currentSelectionIndex].start;
                     let endCell = this.selections[this.currentSelectionIndex].end;
                     let cellRect = null;
 
@@ -319,13 +324,18 @@
                     }
 
                     if(event.shiftKey){
-                        if(cellRect) this.increase(rowIncrement, colIncrement, scroll);
+                        if(cellRect) this.expandSelection(rowIncrement, colIncrement, scroll);
                     }
                     else{
-                        if(cellRect) this.increase(rowIncrement, colIncrement, scroll, 'start');
-                        let startCell = this.selections[this.currentSelectionIndex].start;
-                        endCell.row = startCell.row;
-                        endCell.col = startCell.col;
+                        if(cellRect){
+                            this.expandSelection(rowIncrement, colIncrement, scroll, 'end');
+                            let startCell = this.selections[this.currentSelectionIndex].start;
+                            // endCell.row = startCell.row; //this is to increment start
+                            // endCell.col = startCell.col; // should I increment start or end ?
+                            startCell.row = endCell.row;
+                            startCell.col = endCell.col;
+                            //if not in view scroll to.
+                        } 
                     }
                 }
            }     

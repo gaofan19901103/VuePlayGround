@@ -17,10 +17,6 @@
         mounted: function(){
            this.$refs.GridEl.style.setProperty('--row-height', this.$parent.rowHeight + 'px');
            this.$refs.GridEl.style.setProperty('--col-width', this.$parent.columnWidth + 'px');
-        },
-        updated:function(){
-            //to reset row col if there is a change.
-            //console.log('gridTop has changed',this.gridTop);
         }
     };
 </script>
