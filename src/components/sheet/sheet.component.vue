@@ -27,7 +27,6 @@
             this.sheetHeight = this.$el.clientHeight;
             this.rowCount = this.source.length;
             this.colCount = Object.keys(this.source[0]).length;          
-            // \\this.sheetEl.style.width = this.colCount * this.columnWidth + 17 + 'px';
             this.gridRect = this.$el.querySelector('.v-sheet').getBoundingClientRect();
              
             function dragSelect(elmnt) {
