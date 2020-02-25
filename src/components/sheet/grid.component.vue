@@ -1,8 +1,8 @@
 <template>
    <div class="v-grid" :style="{ top: gridTop + 'px'}" ref="GridEl">
-        <div class="grid-row" v-for="item in virtualList" v-bind:key="item.key">
-            <div class="grid-column grid-cell" v-for="(col, col_index) in Object.keys(item)" v-bind:key="col" :data-col="col_index" :data-row="item.rowIndex">
-                {{item[col]}} 
+        <div class="grid-row" v-for="item in virtualList" v-bind:key="item.rowIndex">
+            <div class="grid-column grid-cell" v-for="col in columns" v-bind:key="col.colIndex" :data-col="col.colIndex" :data-row="item.rowIndex">
+                {{item.Values[col.Col] ? item.Values[col.Col].Val : ''}} 
             </div>
         </div>
     </div>
@@ -12,11 +12,15 @@
     export default {
         props:{
            virtualList: {type: Array, required: false, default: [] },
+           columns: {type: Array, required: false, default: []},
            gridTop: {type: Number, required: false, default: 0}
         },
         mounted: function(){
            this.$refs.GridEl.style.setProperty('--row-height', this.$parent.rowHeight + 'px');
            this.$refs.GridEl.style.setProperty('--col-width', this.$parent.columnWidth + 'px');
+        },
+        updated: function(){
+            let x =0;
         }
     };
 </script>

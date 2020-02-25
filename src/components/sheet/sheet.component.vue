@@ -2,9 +2,9 @@
   <div class="v-sheet-vessel" v-on-resize="onResize">
 
     <div class="v-sheet" @scroll="onScroll($event)" @keydown="onKeyDown($event)" @contextmenu.prevent="onMenu" tabindex="0" ref="SheetEl">
-        <grid :virtual-list="virtualList" :grid-top="gridTop"></grid>    
+        <grid :virtual-list="virtualList" :columns="indexedCols" :grid-top="gridTop"></grid>    
         <selection-area :selections="selections"></selection-area>
-        <div class="vault" :style="{ height: source.length * rowHeight + 'px' }"></div>
+        <div class="vault" :style="{ height: rowCount * rowHeight + 'px' }"></div>
     </div>
 
   </div>
@@ -25,8 +25,8 @@
             let vSheet = that.$el.querySelector('.v-sheet');
             this.sheetEl = vSheet;
             this.sheetHeight = this.$el.clientHeight;
-            this.rowCount = this.source.length;
-            this.colCount = Object.keys(this.source[0]).length;          
+            this.rowCount = Object.keys(this.meta.Rows).length;
+            this.colCount = this.meta.Columns.length;          
             this.gridRect = this.$el.querySelector('.v-sheet').getBoundingClientRect();
              
             function dragSelect(elmnt) {
@@ -150,15 +150,16 @@
             dragSelect(vSheet);
         },
         props:{
-            source: {type: Array, required: true }, 
+            meta: {type: Object, required: true }, 
             rowHeight: {type: Number, required: false, default: 20 },
             columnWidth: {type: Number, required: false, default: 90 }
         },
         data:function(){
             return{
-                //source data
-                indexedSource: this.source.map((x,y) => Object.assign(x, {rowIndex: y })),
-                matrix: this.source.map(x => Object.keys(x).map(y => x[y])),
+                //meta data
+                indexedRows: Object.keys(this.meta.Rows).map((x,y) => Object.assign(this.meta.Rows[x], {rowIndex: y })),
+                indexedCols: this.meta.Columns.map((x,y) => Object.assign(x, {colIndex: y })),
+                //matrix: this.meta.map(x => Object.keys(x).map(y => x[y])),
 
                 //sheet meta
                 sheetEl: null,
@@ -180,7 +181,7 @@
 
                 //cell selections
                 selections:[{start:{row: 0, col: 0}, end:{row: 0, col: 0}}],
-                selectionMatrix: null,
+                //selectionMatrix: null,
                 currentSelectionIndex: 0
             }   
         },
@@ -191,7 +192,7 @@
                 let scrolledRowCount = Math.floor(this.lastVirtualPosition / this.rowHeight);          
                 let startIndex = scrolledRowCount  - this.virtualBuffer < 0 ? 0 : scrolledRowCount  - this.virtualBuffer;   
                 let endIndex = startIndex + visibleRowCount + this.virtualBuffer * 2;                      
-                let result = this.indexedSource.slice(startIndex, endIndex);
+                let result = this.indexedRows.slice(startIndex, endIndex);
 
                 console.log('virtual list',result);
                 return result;
@@ -227,14 +228,14 @@
                 let brX = Math.max(Number(this.selections[this.currentSelectionIndex].start.col), Number(this.selections[this.currentSelectionIndex].end.col));
                 let brY = Math.max(Number(this.selections[this.currentSelectionIndex].start.row), Number(this.selections[this.currentSelectionIndex].end.row));
 
-                let twoD = this.matrix.slice(tlY, brY + 1);
-                twoD = twoD.map(x => x.slice(tlX, brX + 1));
-                this.selectionMatrix = twoD;
-                let content = this.buildString(twoD);
-                Portal.Utils.copyToClipboard(content);
+                // let twoD = this.matrix.slice(tlY, brY + 1);
+                // twoD = twoD.map(x => x.slice(tlX, brX + 1));
+                // this.selectionMatrix = twoD;
+                // let content = this.buildString(twoD);
+                // Portal.Utils.copyToClipboard(content);
 
-                let timerAfter = performance.now();
-                console.info(`copy used ${Math.ceil(timerAfter - timerBefore)} milliseconds`);
+                // let timerAfter = performance.now();
+                // console.info(`copy used ${Math.ceil(timerAfter - timerBefore)} milliseconds`);
            },   
            expandSelection: function(rowIncrement, colIncrement, scroll = true, where = 'end'){              
                 this.selections[this.currentSelectionIndex][where].row = this.selections[this.currentSelectionIndex][where].row + rowIncrement;
@@ -271,6 +272,8 @@
                // put menu here if needed.
            },
            onKeyDown: function(event){
+               //document.onkeyup = keyup;
+
                 if (event.ctrlKey  &&  event.key === "c") { 
                     this.copyCurrentSelection(); 
                 }
@@ -301,6 +304,7 @@
                         scroll = cellRect && this.gridRect.top > cellRect.top;
                     } 
                     else if(event.key == 'ArrowDown'){
+                        console.log('down down down');
                         rowIncrement = 1;
                         let cellEL = this.sheetEl.querySelector(`[data-row="${endCell.row + rowIncrement}"][data-col="${endCell.col + colIncrement}"]`);
                         cellRect = cellEL && cellEL.getBoundingClientRect();
@@ -322,6 +326,13 @@
                         throw 'key not found...'; 
                     }
 
+                    // if(event.repeat){
+                    //     this.inDragScrolling = true;
+                    // }
+                    // else{
+                    //     this.inDragScrolling = false;
+                    // }
+
                     if(event.shiftKey){
                         if(cellRect) this.expandSelection(rowIncrement, colIncrement, scroll);
                     }
@@ -337,6 +348,11 @@
                         } 
                     }
                 }
+
+                // function keyup(){
+                //     this.inDragScrolling = false;
+                //     document.onkeyup = null;
+                // }
            }     
         }
     };

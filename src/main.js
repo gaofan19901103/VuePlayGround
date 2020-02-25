@@ -9,7 +9,7 @@ import parent from './components/parent.vue';
 import xxx from './components/child.vue';
 import VS from './components/virtual-scroller.vue';
 import sheet from './components/sheet/sheet.component.vue';
-import FraMeta from './metaData.js';
+import { FraMeta } from './metaData.js';
 
 require('./directives/test-directive.js');
 require('./directives/tooltip.js');
@@ -36,6 +36,7 @@ window.myVue = new Vue({
   data:{
     testString: 'hello w',
     listSource: list,
+    meta: FraMeta,
     tooltipTestData: {
       component: 'message-list',
       props:{ messages: ['im a child']},
