@@ -1,6 +1,6 @@
 <template>
   <div class="v-sheet-vessel" v-on-resize="onResize">
-
+    
     <div class="v-sheet" @scroll="onScroll($event)" @keydown="onKeyDown($event)" @contextmenu.prevent="onMenu" tabindex="0" ref="SheetEl">
         <grid :virtual-list="virtualList" :columns="indexedCols" :grid-top="gridTop"></grid>    
         <selection-area :selections="selections"></selection-area>

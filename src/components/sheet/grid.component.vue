@@ -1,10 +1,13 @@
 <template>
    <div class="v-grid" :style="{ top: gridTop + 'px'}" ref="GridEl">
-        <div class="grid-row" v-for="item in virtualList" v-bind:key="item.rowIndex">
-            <div class="grid-column grid-cell" v-for="col in columns" v-bind:key="col.colIndex" :data-col="col.colIndex" :data-row="item.rowIndex">
-                {{item.Values[col.Col] ? item.Values[col.Col].Val : ''}} 
+            <div class="grid-header">
+                <div class="grid-column grid-cell" v-for="x in columns" v-bind:key="x.colIndex">{{x.Title}}</div>
             </div>
-        </div>
+            <div class="grid-row" v-for="item in virtualList" v-bind:key="item.rowIndex">
+                <div class="grid-column grid-cell" v-for="col in columns" v-bind:key="col.colIndex" :data-col="col.colIndex" :data-row="item.rowIndex">
+                    {{item.Values[col.Col] ? item.Values[col.Col].Val : ''}} 
+                </div>
+            </div>
     </div>
 </template>
 
@@ -39,6 +42,29 @@
                 box-sizing: border-box;
             }
 
+            .grid-header{
+                display: flex;
+                height: var(--row-height);  
+                position: sticky;
+                top: 0;
+                background-color: aqua;
+                z-index: 30;
+
+                .grid-column:first-child{
+                    position: sticky;
+                    left:0;
+                    z-index: 40;
+                    background-color: aqua;
+                }
+
+                .grid-column:nth-child(2){
+                    position: sticky;
+                    left: 90;
+                    z-index: 40;
+                    background-color: aqua;
+                }
+            }
+
             .grid-row{
                 display: flex;
                 height: var(--row-height);  
@@ -65,6 +91,30 @@
                 border-top: 0.25px solid var(--grid-border-color);
                 border-left: 0.25px solid var(--grid-border-color);            
             }
+
+            .grid-cell[data-col="0"]{
+                background-color: grey;
+                position: sticky;
+                left: 0px;
+                //position: fixed;
+                //position: absolute;
+            }
+
+
+            .grid-cell[data-col="1"]{
+                background-color: grey;
+                position: sticky;
+                left: 90px;
+                //position: fixed;
+                //position: absolute;
+            }
+
+            .grid-row:first-child{
+                position: sticky;
+                top: 0;
+                background-color: aqua;
+            }
+
 
             // .grid-cell[data-col="3"]{
             //     background-color: blue;
