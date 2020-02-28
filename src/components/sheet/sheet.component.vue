@@ -77,8 +77,9 @@
                 function dragging(e) {
                     
                     e.preventDefault();
-
-                    that.currentEqurant = Portal.Utils.getMouseEqurant(e.pageX, e.pageY, that.gridRect);       
+                    let rect = that.sheetEl.getBoundingClientRect(); // maybe slow.
+                    that.currentEqurant = Portal.Utils.getMouseEqurant(e.clientX, e.clientY, rect);
+                    //that.currentEqurant = Portal.Utils.getMouseEqurant(e.pageX, e.pageY, that.gridRect);        //this is wrong.
                     console.log('--------------equrant',  that.currentEqurant);
                     if(that.currentEqurant == 5){
                         console.log('cancel ----------------- interval');
@@ -240,7 +241,7 @@
            expandSelection: function(rowIncrement, colIncrement, scroll = true, where = 'end'){              
                 this.selections[this.currentSelectionIndex][where].row = this.selections[this.currentSelectionIndex][where].row + rowIncrement;
                 this.selections[this.currentSelectionIndex][where].col = this.selections[this.currentSelectionIndex][where].col + colIncrement;
-                if(scroll) this.lastVirtualPosition = this.lastVirtualPosition + rowIncrement * this.rowHeight;                                                           
+                if(scroll) this.lastVirtualPosition = this.lastVirtualPosition + (rowIncrement * this.rowHeight);                                                           
                 
                 if(this.selections[this.currentSelectionIndex][where].row < 0) {
                     this.selections[this.currentSelectionIndex][where].row++;
@@ -298,6 +299,7 @@
                     let cellRect = null;
 
                     if(event.key == 'ArrowUp'){
+                        console.log('up up up');
                         rowIncrement = -1;
                         let cellEL = this.sheetEl.querySelector(`[data-row="${endCell.row + rowIncrement}"][data-col="${endCell.col + colIncrement}"]`);
                         cellRect = cellEL && cellEL.getBoundingClientRect();
@@ -332,7 +334,9 @@
                     // else{
                     //     this.inDragScrolling = false;
                     // }
-
+                    if(event.repeat){
+                        this.inDragScrolling = true;
+                    }
                     if(event.shiftKey){
                         if(cellRect) this.expandSelection(rowIncrement, colIncrement, scroll);
                     }
