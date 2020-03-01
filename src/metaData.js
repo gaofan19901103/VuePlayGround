@@ -1,3 +1,775 @@
+export var FraTemplate = {
+
+    "COL_Cv_Tnr": {
+  
+      "_t": "TextCol",
+  
+      "Col": "COL_Cv_Tnr",
+  
+      "Title": "Tenor",
+  
+      "Desc": "Tenor",
+  
+      "Dir": "Output",
+  
+      "Scope": {
+  
+        "_t": "Scope",
+  
+        "Level": "Dealer"
+  
+      },
+  
+      "Visibility": "Never",
+  
+      "Nullable": "No",
+  
+      "Validators": [],
+  
+      "Defaultable": "No"
+  
+    },
+  
+    "COL_Cv_Rst": {
+  
+      "_t": "DateCol",
+  
+      "Style": "ShortDate",
+  
+      "Col": "COL_Cv_Rst",
+  
+      "Title": "Reset",
+  
+      "Desc": "Reset",
+  
+      "Dir": "Output",
+  
+      "Scope": {
+  
+        "_t": "Scope",
+  
+        "Level": "Dealer"
+  
+      },
+  
+      "Visibility": "Must",
+  
+      "Nullable": "No",
+  
+      "Validators": [],
+  
+      "Defaultable": "No"
+  
+    },
+  
+    "COL_Cv_Val": {
+  
+      "_t": "DateCol",
+  
+      "Style": "ShortDate",
+  
+      "Col": "COL_Cv_Val",
+  
+      "Title": "Value",
+  
+      "Desc": "Value",
+  
+      "Dir": "Output",
+  
+      "Scope": {
+  
+        "_t": "Scope",
+  
+        "Level": "Dealer"
+  
+      },
+  
+      "Visibility": "Must",
+  
+      "Nullable": "No",
+  
+      "Validators": [],
+  
+      "Defaultable": "No"
+  
+    },
+  
+    "COL_Cv_Mat": {
+  
+      "_t": "DateCol",
+  
+      "Style": "ShortDate",
+  
+      "Col": "COL_Cv_Mat",
+  
+      "Title": "Maturity",
+  
+      "Desc": "Maturity",
+  
+      "Dir": "Output",
+  
+      "Scope": {
+  
+        "_t": "Scope",
+  
+        "Level": "Dealer"
+  
+      },
+  
+      "Visibility": "Must",
+  
+      "Nullable": "No",
+  
+      "Validators": [],
+  
+      "Defaultable": "No"
+  
+    },
+  
+    "COL_Cv_Yld": {
+  
+      "_t": "NumCol",
+  
+      "Notation": {
+  
+        "_t": "NumberNotation",
+  
+        "Int": 8,
+  
+        "Dec": 4,
+  
+        "ShowPlus": false,
+  
+        "DecToShow": 4
+  
+      },
+  
+      "Col": "COL_Cv_Yld",
+  
+      "Title": "Yield",
+  
+      "Desc": "Yield",
+  
+      "Dir": "Output",
+  
+      "Scope": {
+  
+        "_t": "Scope",
+  
+        "Level": "Dealer"
+  
+      },
+  
+      "Visibility": "Must",
+  
+      "Nullable": "No",
+  
+      "Validators": [],
+  
+      "Defaultable": "No"
+  
+    },
+  
+    "COL_Cv_YrCv": {
+  
+      "_t": "NumCol",
+  
+      "Notation": {
+  
+        "_t": "NumberNotation",
+  
+        "Int": 8,
+  
+        "Dec": 4,
+  
+        "ShowPlus": false,
+  
+        "DecToShow": 4
+  
+      },
+  
+      "Min": -1000,
+  
+      "Max": 1000,
+  
+      "Col": "COL_Cv_YrCv",
+  
+      "Title": "My Yield",
+  
+      "Desc": "Enter your yield in decimal not percentage",
+  
+      "Dir": "Input",
+  
+      "Scope": {
+  
+        "_t": "Scope",
+  
+        "Level": "Dealer"
+  
+      },
+  
+      "Visibility": "Must",
+  
+      "Nullable": "Yes",
+  
+      "Validators": [],
+  
+      "Defaultable": "No",
+  
+      "ValueType": "Num"
+  
+    },
+  
+    "COL_Cv_YrCv100": {
+  
+      "_t": "CalcCol",
+  
+      "Formula": "COL_Cv_YrCv * 100",
+  
+      "Col": "COL_Cv_YrCv100",
+  
+      "Title": "Calc100",
+  
+      "Desc": "Yield*100",
+  
+      "Dir": "Output",
+  
+      "Scope": {
+  
+        "_t": "Scope",
+  
+        "Level": "Dealer"
+  
+      },
+  
+      "Visibility": "Never",
+  
+      "Nullable": "No",
+  
+      "Validators": [],
+  
+      "Defaultable": "No"
+  
+    },
+  
+    "COL_Cv_YldDiff": {
+  
+      "_t": "CalcCol",
+  
+      "Formula": "COL_Cv_Yld - COL_Cv_YrCv",
+  
+      "Col": "COL_Cv_YldDiff",
+  
+      "Title": "Difference",
+  
+      "Desc": "Yield-YourYield",
+  
+      "Dir": "Output",
+  
+      "Scope": {
+  
+        "_t": "Scope",
+  
+        "Level": "Dealer"
+  
+      },
+  
+      "Visibility": "Must",
+  
+      "Nullable": "No",
+  
+      "Validators": [],
+  
+      "Defaultable": "No"
+  
+    },
+  
+    "COL_Cv_Sep": {
+  
+      "_t": "SepCol",
+  
+      "Col": "COL_Cv_Sep",
+  
+      "Dir": "Output",
+  
+      "Scope": {
+  
+        "_t": "Scope",
+  
+        "Level": "Portfolio"
+  
+      },
+  
+      "Visibility": "Must",
+  
+      "Nullable": "No",
+  
+      "Validators": [],
+  
+      "Defaultable": "No"
+  
+    },
+  
+    "COL_Cv_Pos": {
+  
+      "_t": "NumCol",
+  
+      "Notation": {
+  
+        "_t": "NumberNotation",
+  
+        "Int": 8,
+  
+        "Dec": 4,
+  
+        "ShowPlus": false,
+  
+        "DecToShow": 4
+  
+      },
+  
+      "Min": -100000,
+  
+      "Max": 100000,
+  
+      "Step": 1,
+  
+      "Col": "COL_Cv_Pos",
+  
+      "Title": "<SET PER RUN>",
+  
+      "Desc": "Your position: Use '+' to sell the FRA (receive fixed) and '-' to buy the FRA (pay fixed)",
+  
+      "Dir": "Input",
+  
+      "Scope": {
+  
+        "_t": "Scope",
+  
+        "Level": "Portfolio"
+  
+      },
+  
+      "Visibility": "Must",
+  
+      "Nullable": "Yes",
+  
+      "Validators": [],
+  
+      "Defaultable": "No",
+  
+      "ValueType": "Num"
+  
+    },
+  
+    "COL_Cv_Splt": {
+  
+      "_t": "HighlightCol",
+  
+      "Highlight": "None",
+  
+      "HighlightScope": "Portfolio",
+  
+      "Col": "COL_Cv_Splt",
+  
+      "Title": "Split",
+  
+      "Desc": "Double-click the cell to select this date as a split date",
+  
+      "Dir": "Input",
+  
+      "Scope": {
+  
+        "_t": "Scope",
+  
+        "Level": "Portfolio"
+  
+      },
+  
+      "Visibility": "Never",
+  
+      "Nullable": "Yes",
+  
+      "Validators": [],
+  
+      "Defaultable": "No",
+  
+      "ValueType": "Bool"
+  
+    },
+  
+    "COL_Cv_FMin": {
+  
+      "_t": "ListCol",
+  
+      "Options": [
+  
+        {
+  
+          "_t": "NumberRangeListOption",
+  
+          "Range": {
+  
+            "_t": "NumberRange",
+  
+            "Lower": -5,
+  
+            "Upper": -1,
+  
+           "Step": 1,
+  
+            "Notation": {
+  
+              "_t": "NumberNotation",
+  
+              "Int": 2,
+  
+              "Dec": 0,
+  
+              "ShowPlus": true,
+  
+              "DecToShow": 0
+  
+            }
+  
+          }
+  
+        }
+  
+      ],
+  
+      "Restrict": "No",
+  
+      "Min": -500,
+  
+      "Max": -1,
+  
+      "Col": "COL_Cv_FMin",
+  
+      "Title": "Flexi -",
+  
+      "Desc": "Specify a number of dates to include this 'flexible' position",
+  
+      "Dir": "Input",
+  
+      "Scope": {
+  
+        "_t": "Scope",
+  
+        "Level": "Portfolio"
+  
+      },
+  
+      "Visibility": "Can",
+  
+      "Nullable": "Yes",
+  
+      "Validators": [],
+  
+      "Defaultable": "No",
+  
+      "ValueType": "Text"
+  
+    },
+  
+    "COL_Cv_FPls": {
+  
+      "_t": "ListCol",
+  
+      "Options": [
+  
+        {
+  
+          "_t": "NumberRangeListOption",
+  
+          "Range": {
+  
+            "_t": "NumberRange",
+  
+            "Lower": 1,
+  
+            "Upper": 5,
+  
+            "Step": 1,
+  
+            "Notation": {
+  
+              "_t": "NumberNotation",
+  
+              "Int": 2,
+  
+              "Dec": 0,
+  
+              "ShowPlus": true,
+  
+              "DecToShow": 0
+  
+            }
+  
+          }
+  
+        }
+  
+      ],
+  
+      "Restrict": "No",
+  
+      "Min": 1,
+  
+      "Max": 500,
+  
+      "Col": "COL_Cv_FPls",
+  
+      "Title": "Flexi +",
+  
+      "Desc": "Specify a number of dates to include this 'flexible' position",
+  
+      "Dir": "Input",
+  
+      "Scope": {
+  
+        "_t": "Scope",
+  
+        "Level": "Portfolio"
+  
+      },
+  
+      "Visibility": "Can",
+  
+      "Nullable": "Yes",
+  
+      "Validators": [],
+  
+      "Defaultable": "No",
+  
+      "ValueType": "Text"
+  
+    },
+  
+    "COL_Hg_Rst": {
+  
+      "_t": "DateCol",
+  
+      "Style": "ShortDate",
+  
+      "Col": "COL_Hg_Rst",
+  
+      "Title": "Reset",
+  
+      "Desc": "Reset Date",
+  
+      "Dir": "Output",
+  
+      "Scope": {
+  
+        "_t": "Scope",
+  
+        "Level": "Dealer"
+  
+      },
+  
+      "Visibility": "Must",
+  
+      "Nullable": "No",
+  
+      "Validators": [],
+  
+      "Defaultable": "No"
+  
+    },
+  
+    "COL_Hg_Val": {
+  
+      "_t": "DateCol",
+  
+      "Style": "ShortDate",
+  
+      "Col": "COL_Hg_Val",
+  
+      "Title": "Value",
+  
+      "Desc": "Value Date",
+  
+      "Dir": "Output",
+  
+      "Scope": {
+  
+        "_t": "Scope",
+  
+        "Level": "Dealer"
+  
+      },
+  
+      "Visibility": "Must",
+  
+      "Nullable": "No",
+  
+      "Validators": [],
+  
+      "Defaultable": "No"
+  
+    },
+  
+    "COL_Hg_Mat": {
+  
+      "_t": "DateCol",
+  
+      "Style": "ShortDate",
+  
+      "Col": "COL_Hg_Mat",
+  
+      "Title": "Maturity",
+  
+      "Desc": "Maturity Date",
+  
+      "Dir": "Output",
+  
+      "Scope": {
+  
+        "_t": "Scope",
+  
+        "Level": "Dealer"
+  
+      },
+  
+      "Visibility": "Must",
+  
+      "Nullable": "No",
+  
+      "Validators": [],
+  
+      "Defaultable": "No"
+  
+    },
+  
+    "COL_Hg_Yld": {
+  
+      "_t": "NumCol",
+  
+      "Notation": {
+  
+        "_t": "NumberNotation",
+  
+        "Int": 8,
+  
+        "Dec": 4,
+  
+        "ShowPlus": false,
+  
+        "DecToShow": 4
+  
+      },
+  
+      "Col": "COL_Hg_Yld",
+  
+      "Title": "Yield",
+  
+      "Desc": "Yield",
+  
+      "Dir": "Output",
+  
+      "Scope": {
+  
+        "_t": "Scope",
+  
+        "Level": "Dealer"
+  
+      },
+  
+      "Visibility": "Must",
+  
+      "Nullable": "No",
+  
+      "Validators": [],
+  
+      "Defaultable": "No"
+  
+    },
+  
+    "COL_Hg_ReRt": {
+  
+      "_t": "NumCol",
+  
+      "Notation": {
+  
+        "_t": "NumberNotation",
+  
+        "Int": 8,
+  
+        "Dec": 4,
+  
+        "ShowPlus": false,
+  
+        "DecToShow": 4
+  
+      },
+  
+      "Min": -1000,
+  
+      "Max": 1000,
+  
+      "Col": "COL_Hg_ReRt",
+  
+      "Title": "My Yield",
+  
+      "Desc": "Your reval curve rate",
+  
+      "Dir": "Input",
+  
+      "Scope": {
+  
+        "_t": "Scope",
+  
+        "Level": "Dealer"
+  
+      },
+  
+      "Visibility": "Must",
+  
+      "Nullable": "Yes",
+  
+      "Validators": [],
+  
+      "Defaultable": "No",
+  
+      "ValueType": "Num"
+  
+    },
+  
+    "COL_Hg_Diff": {
+  
+      "_t": "CalcCol",
+  
+      "Formula": "COL_Hg_Yld - COL_Hg_ReRt",
+  
+      "Col": "COL_Hg_Diff",
+  
+      "Title": "Diff",
+  
+      "Desc": "Diff = (Yield − My Yield)",
+  
+      "Dir": "Output",
+  
+      "Scope": {
+  
+        "_t": "Scope",
+  
+        "Level": "Dealer"
+  
+      },
+  
+      "Visibility": "Must",
+  
+      "Nullable": "No",
+  
+      "Validators": [],
+  
+      "Defaultable": "No"
+  
+    }
+  
+  };
+
 export var FraMeta = {
 
     "_t": "WebsiteRunTemplateCurve",

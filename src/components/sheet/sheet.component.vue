@@ -33,6 +33,7 @@
                 var rowIndex = null;
                 var columnIndex = null;
                 
+                that.gridRect = that.sheetEl.getBoundingClientRect();
                 elmnt.onmousedown = startDrag;
                 
                 function startDrag(e) {
@@ -77,9 +78,9 @@
                 function dragging(e) {
                     
                     e.preventDefault();
-                    let rect = that.sheetEl.getBoundingClientRect(); // maybe slow.
-                    that.currentEqurant = Portal.Utils.getMouseEqurant(e.clientX, e.clientY, rect);
-                    //that.currentEqurant = Portal.Utils.getMouseEqurant(e.pageX, e.pageY, that.gridRect);        //this is wrong.
+                    //let rect = that.sheetEl.getBoundingClientRect(); // maybe slow.
+                    //that.currentEqurant = Portal.Utils.getMouseEqurant(e.clientX, e.clientY, rect);
+                    that.currentEqurant = Portal.Utils.getMouseEqurant(e.pageX, e.pageY, that.gridRect);        //this is wrong.
                     console.log('--------------equrant',  that.currentEqurant);
                     if(that.currentEqurant == 5){
                         console.log('cancel ----------------- interval');
@@ -103,38 +104,46 @@
                     }
                     else{
                         that.inDragScrolling = true;                   
-                        that.onDragScroll = that.onDragScroll || setInterval(function(){      
-                            console.log('setTimeInterval triggered');                       
-                                switch(that.currentEqurant) {
-                                    case 1:
-                                        that.expandSelection(-1, -1);
-                                        break;
-                                    case 2:
-                                        that.expandSelection(-1, 0);
-                                        break;
-                                    case 3:
-                                        that.expandSelection(-1, 1);
-                                        break;
-                                    case 4:
-                                        that.expandSelection(0, -1); 
-                                        break;
-                                    case 6:
-                                        that.expandSelection(0, 1);
-                                        break;
-                                    case 7:
-                                        that.expandSelection(1, -1);
-                                        break;
-                                    case 8:
-                                        that.expandSelection(1, 0);
-                                        break;
-                                    case 9:
-                                        that.expandSelection(1, 1); 
-                                        break;
-                                    default:
-                                        console.error('equrant not found...');
-                                        break;
-                                }
-                        }, that.scrollSpeed);                                                                                                            
+                        // that.onDragScroll = that.onDragScroll || setInterval(function(){      
+                        //     console.log('setTimeInterval triggered');                       
+                        //         switch(that.currentEqurant) {
+                        //             case 1:
+                        //                 that.expandSelection(-1, -1);
+                        //                 break;
+                        //             case 2:
+                        //                 that.expandSelection(-1, 0);
+                        //                 break;
+                        //             case 3:
+                        //                 that.expandSelection(-1, 1);
+                        //                 break;
+                        //             case 4:
+                        //                 that.expandSelection(0, -1); 
+                        //                 break;
+                        //             case 6:
+                        //                 that.expandSelection(0, 1);
+                        //                 break;
+                        //             case 7:
+                        //                 that.expandSelection(1, -1);
+                        //                 break;
+                        //             case 8:
+                        //                 that.expandSelection(1, 0);
+                        //                 break;
+                        //             case 9:
+                        //                 that.expandSelection(1, 1); 
+                        //                 break;
+                        //             default:
+                        //                 console.error('equrant not found...');
+                        //                 break;
+                        //         }
+                        // }, that.scrollSpeed);            
+                        
+                        const performAnimation = () => {
+                            that.onDragScroll = requestAnimationFrame(performAnimation)
+                            //animate something
+                            that.expandSelection(1, 0);
+                        }
+
+                        that.onDragScroll = that.onDragScroll || requestAnimationFrame(performAnimation);
                     }                   
                 }
 
@@ -334,9 +343,12 @@
                     // else{
                     //     this.inDragScrolling = false;
                     // }
-                    if(event.repeat){
-                        this.inDragScrolling = true;
-                    }
+
+                    // if(event.repeat){
+                    //    // this.inDragScrolling = true;
+                    //     requestAnimationFrame(() =>{this.expandSelection(rowIncrement, colIncrement, scroll)});
+                    // }
+                    
                     if(event.shiftKey){
                         if(cellRect) this.expandSelection(rowIncrement, colIncrement, scroll);
                     }

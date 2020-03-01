@@ -1,18 +1,40 @@
 <template>
    <div class="v-grid" :style="{ top: gridTop + 'px'}" ref="GridEl">
-            <div class="grid-header">
+            <!-- <div class="grid-header">
                 <div class="grid-column grid-cell" v-for="x in columns" v-bind:key="x.colIndex">{{x.Title}}</div>
-            </div>
-            <div class="grid-row" v-for="item in virtualList" v-bind:key="item.rowIndex">
+            </div> -->
+
+            <!-- <div class="grid-row" v-for="item in virtualList" v-bind:key="item.rowIndex">
                 <div class="grid-column grid-cell" v-for="col in columns" v-bind:key="col.colIndex" :data-col="col.colIndex" :data-row="item.rowIndex">
                     {{item.Values[col.Col] ? item.Values[col.Col].Val : ''}} 
                 </div>
+            </div> -->
+
+            <div class="grid-row" v-for="item in virtualList" v-bind:key="item.rowIndex">
+                <cell
+                    v-for="col in columns" v-bind:key="col.colIndex"
+                    :row-index="item.rowIndex"
+                    :col-index="col.colIndex"
+                    :value="item.Values[col.Col] ? item.Values[col.Col].Val : ''"
+                >
+                </cell>
             </div>
+
+            <!-- <div class="grid-row" v-for="item in virtualList" v-bind:key="item.rowIndex">
+                <row :row="item" :columns="columns"></row>
+            </div> -->
     </div>
 </template>
 
 <script>
+    import Cell from './cell.component.vue';  
+    import Row from './row.component.vue';
+
     export default {
+        components:{
+            'cell': Cell,
+            'row': Row
+        },
         props:{
            virtualList: {type: Array, required: false, default: [] },
            columns: {type: Array, required: false, default: []},

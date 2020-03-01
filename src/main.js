@@ -82,8 +82,11 @@ function dragElement(elmnt) {
     pos3 = e.clientX;
     pos4 = e.clientY;
     // set the element's new position:
-    testEl.style.width = testEl.getBoundingClientRect().width + pos1 + 'px';
-    testEl.style.height = testEl.getBoundingClientRect().height + pos2 + 'px';
+    requestAnimationFrame(function(){
+      testEl.style.width = testEl.getBoundingClientRect().width + pos1 + 'px';
+      testEl.style.height = testEl.getBoundingClientRect().height + pos2 + 'px';
+    });
+
     // elmnt.style.top = (elmnt.offsetTop - pos2) + "px";
     // elmnt.style.left = (elmnt.offsetLeft - pos1) + "px";
   }
