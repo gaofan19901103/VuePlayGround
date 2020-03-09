@@ -360,7 +360,7 @@
                // put menu here if needed.
            },
            onKeyDown: function(event){
-
+               if(event.repeat && this.inDragScrolling) return;
 
                 if (event.ctrlKey  &&  event.key === "c") { 
                     this.copyCurrentSelection(); 
@@ -378,70 +378,76 @@
 
                 if (event.key.startsWith('Arrow')) {
                     event.preventDefault();
-                    let rowIncrement = 0;
-                    let colIncrement = 0;
-                    let scroll = false;             
-                    //let startCell = this.selections[this.currentSelectionIndex].start;
-                    let endCell = this.selections[this.currentSelectionIndex].end;
-                    //let cellRect = null;
 
-                    // if(event.key == 'ArrowUp'){
-                    //     console.log('up up up');
-                    //     rowIncrement = -1;
+                    if(event.repeat && !this.inDragScrolling){
+                        this.inDragScrolling = true;
+                        document.onkeyup = keyup.bind(this);
+                        this.rafLoop();
+                    }
+                    else{
+                        let rowIncrement = 0;
+                        let colIncrement = 0;
+                        let scroll = false;             
+                        //let startCell = this.selections[this.currentSelectionIndex].start;
+                        let endCell = this.selections[this.currentSelectionIndex].end;
+                        //let cellRect = null;
+
+                        // if(event.key == 'ArrowUp'){
+                        //     console.log('up up up');
+                        //     rowIncrement = -1;
+                            
+                        //     let cellEL = this.sheetEl.querySelector(`[data-row="${endCell.row + rowIncrement}"][data-col="${endCell.col + colIncrement}"]`);
+                        //     cellRect = cellEL && cellEL.getBoundingClientRect();
+                        //     scroll = cellRect && this.gridRect.top > cellRect.top;
+                        // } 
+                        // else if(event.key == 'ArrowDown'){
+                        //     console.log('down down down');
+                        //     rowIncrement = 1;
+                        //     let cellEL = this.sheetEl.querySelector(`[data-row="${endCell.row + rowIncrement}"][data-col="${endCell.col + colIncrement}"]`);
+                        //     cellRect = cellEL && cellEL.getBoundingClientRect();
+                        //     scroll = cellRect && this.gridRect.top + this.gridRect.height < cellRect.top + cellRect.height;
+                        // } 
+                        // else if(event.key == 'ArrowLeft'){
+                        //     colIncrement = -1;
+                        //     let cellEL = this.sheetEl.querySelector(`[data-row="${endCell.row + rowIncrement}"][data-col="${endCell.col + colIncrement}"]`);
+                        //     cellRect = cellEL && cellEL.getBoundingClientRect();
+                        //     scroll = cellRect && this.gridRect.left > cellRect.left;
+                        // } 
+                        // else if(event.key == 'ArrowRight'){
+                        //     colIncrement = 1;
+                        //     let cellEL = this.sheetEl.querySelector(`[data-row="${endCell.row + rowIncrement}"][data-col="${endCell.col + colIncrement}"]`);
+                        //     cellRect = cellEL && cellEL.getBoundingClientRect();
+                        //     scroll = cellRect && this.gridRect.left + this.gridRect.width < cellRect.left + cellRect.width;
+                        // } 
+                        // else{
+                        //     throw 'key not found...'; 
+                        // }
+
+                        if(event.key == 'ArrowUp'){
+                            rowIncrement = -1;                   
+                        } 
+                        else if(event.key == 'ArrowDown'){
+                            rowIncrement = 1;
+                        } 
+                        else if(event.key == 'ArrowLeft'){
+                            colIncrement = -1;
+                        } 
+                        else if(event.key == 'ArrowRight'){
+                            colIncrement = 1;
+                        } 
+                        else{
+                            throw 'key not found...'; 
+                        }
+
                         
-                    //     let cellEL = this.sheetEl.querySelector(`[data-row="${endCell.row + rowIncrement}"][data-col="${endCell.col + colIncrement}"]`);
-                    //     cellRect = cellEL && cellEL.getBoundingClientRect();
-                    //     scroll = cellRect && this.gridRect.top > cellRect.top;
-                    // } 
-                    // else if(event.key == 'ArrowDown'){
-                    //     console.log('down down down');
-                    //     rowIncrement = 1;
-                    //     let cellEL = this.sheetEl.querySelector(`[data-row="${endCell.row + rowIncrement}"][data-col="${endCell.col + colIncrement}"]`);
-                    //     cellRect = cellEL && cellEL.getBoundingClientRect();
-                    //     scroll = cellRect && this.gridRect.top + this.gridRect.height < cellRect.top + cellRect.height;
-                    // } 
-                    // else if(event.key == 'ArrowLeft'){
-                    //     colIncrement = -1;
-                    //     let cellEL = this.sheetEl.querySelector(`[data-row="${endCell.row + rowIncrement}"][data-col="${endCell.col + colIncrement}"]`);
-                    //     cellRect = cellEL && cellEL.getBoundingClientRect();
-                    //     scroll = cellRect && this.gridRect.left > cellRect.left;
-                    // } 
-                    // else if(event.key == 'ArrowRight'){
-                    //     colIncrement = 1;
-                    //     let cellEL = this.sheetEl.querySelector(`[data-row="${endCell.row + rowIncrement}"][data-col="${endCell.col + colIncrement}"]`);
-                    //     cellRect = cellEL && cellEL.getBoundingClientRect();
-                    //     scroll = cellRect && this.gridRect.left + this.gridRect.width < cellRect.left + cellRect.width;
-                    // } 
-                    // else{
-                    //     throw 'key not found...'; 
-                    // }
+                        if(!this.isCellIndexWithinRange(endCell.row + rowIncrement, endCell.col + colIncrement)) return;
 
-                    if(event.key == 'ArrowUp'){
-                        rowIncrement = -1;                   
-                    } 
-                    else if(event.key == 'ArrowDown'){
-                        rowIncrement = 1;
-                    } 
-                    else if(event.key == 'ArrowLeft'){
-                        colIncrement = -1;
-                    } 
-                    else if(event.key == 'ArrowRight'){
-                        colIncrement = 1;
-                    } 
-                    else{
-                        throw 'key not found...'; 
-                    }
-                    
-                    if(!this.isCellIndexWithinRange(end.row + rowIncrement, end.col + colIncrement)) return;
+                        scroll = !this.isCellInView(endCell.row + rowIncrement, endCell.col + colIncrement);
 
-                    scroll = !this.isCellInView();
-
-                    if(event.shiftKey){
-
-                        if(cellRect) this.render = () => { this.expandSelection(rowIncrement, colIncrement, scroll); };
-                    }
-                    else{
-                        if(cellRect){
+                        if(event.shiftKey){
+                            this.render = () => { this.expandSelection(rowIncrement, colIncrement, scroll); };
+                        }
+                        else{
                             this.render = () =>{
                                 this.expandSelection(rowIncrement, colIncrement, scroll);
                                 let startCell = this.selections[this.currentSelectionIndex].start;
@@ -450,16 +456,24 @@
                                 startCell.row = endCell.row;
                                 startCell.col = endCell.col;
                                 //if not in view scroll to.
-                            };
-                        } 
+                            };                 
+                        }
+                        
+                        this.render();
+                        // if(event.repeat && !this.rafRef){
+                        //     this.inDragScrolling = true;
+                        //     document.onkeyup = keyup.bind(this);
+                        //     this.rafLoop();
+                        // // requestAnimationFrame(this.render);
+                        // }
+                        // else{
+                        //     this.render();
+                        // }
                     }
 
-                    if(event.repeat){
-                        document.onkeyup = keyup;
-                        this.rafLoop();
-                    }
                 }
 
+                            
                 function keyup(){
                     this.inDragScrolling = false;
                     cancelAnimationFrame(this.rafRef);
