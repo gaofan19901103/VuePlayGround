@@ -46,6 +46,7 @@
         },
         updated: function(){
             let x =0;
+            console.log('grid virtualList updated');
         }
     };
 </script>

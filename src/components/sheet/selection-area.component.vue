@@ -31,6 +31,9 @@
 
                 return areas;
             }
+        },
+        updated: function(){
+            console.log('selection-area update');
         }
     };
 </script>

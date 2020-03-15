@@ -33,15 +33,19 @@
                 var rowIndex = null;
                 var columnIndex = null;
                 
-                that.gridRect = that.sheetEl.getBoundingClientRect();
+                
                 elmnt.onmousedown = startDrag;
                 
                 function startDrag(e) {
                 
                     if(e.which == 3) return;
                     
+                    that.gridRect = that.sheetEl.getBoundingClientRect();
                     let dataSet = e.target.dataset;
-                    if(dataSet.row == 'undefined' || dataSet.col == 'undefined') console.error('which cell is it???');
+                    if(dataSet.row == undefined || dataSet.col == undefined){
+                        //console.error('which cell is it???');
+                        return;
+                    } 
 
                     rowIndex = Number(dataSet.row);
                     columnIndex = Number(dataSet.col);
@@ -79,8 +83,8 @@
                     
                     e.preventDefault();
                     //let rect = that.sheetEl.getBoundingClientRect(); // maybe slow.
-                    //that.currentEqurant = Portal.Utils.getMouseEqurant(e.clientX, e.clientY, rect);
-                    that.currentEqurant = Portal.Utils.getMouseEqurant(e.pageX, e.pageY, that.gridRect);        //this is wrong.
+                    that.currentEqurant = Portal.Utils.getMouseEqurant(e.clientX, e.clientY, that.gridRect);   
+                    //that.currentEqurant = Portal.Utils.getMouseEqurant(e.pageX, e.pageY, that.gridRect);        //this is wrong.
                     console.log('--------------equrant',  that.currentEqurant);
                     if(that.currentEqurant == 5){
                         console.log('cancel ----------------- interval');
@@ -226,7 +230,8 @@
                 currentSelectionIndex: 0,
 
                 render: null,
-                rafRef: null
+                rafRef: null,
+                inRAFLooping: false
             }   
         },
         computed:{         
@@ -253,6 +258,7 @@
         },
         methods:{
            onScroll: function(e){
+              console.log('isDragingScroll -->', this.inDragScrolling);
               if(this.inDragScrolling) return;
               if(Math.abs(e.target.scrollTop -  this.lastVirtualPosition) > this.virtualBuffer * this.rowHeight){
                     console.debug('virtual list re-render', e.target.scrollTop);
@@ -281,36 +287,65 @@
                 // let timerAfter = performance.now();
                 // console.info(`copy used ${Math.ceil(timerAfter - timerBefore)} milliseconds`);
            },   
-           moveSelection: function(rowIncrement, colIncrement, scroll = true){
-                this.selections[this.currentSelectionIndex].start.row = this.selections[this.currentSelectionIndex].start.row + rowIncrement;
-                this.selections[this.currentSelectionIndex].start.col = this.selections[this.currentSelectionIndex].start.col + colIncrement;
-                if(scroll) this.lastVirtualPosition = this.lastVirtualPosition + (rowIncrement * this.rowHeight);                                                           
+           moveSelection: function(rowIncrement, colIncrement, scroll = true, check = false){
+                this.selections[this.currentSelectionIndex].end.row = this.selections[this.currentSelectionIndex].end.row + rowIncrement;
+                this.selections[this.currentSelectionIndex].end.col = this.selections[this.currentSelectionIndex].end.col + colIncrement;
+
+
+                if(scroll){
+                // this.lastVirtualPosition = this.lastVirtualPosition + (rowIncrement * this.rowHeight); 
+                    if(check){
+                        if(!this.isCellInView(this.selections[this.currentSelectionIndex].end.row, this.selections[this.currentSelectionIndex].end.col)){
+                            this.lastVirtualPosition = this.lastVirtualPosition + (rowIncrement * this.rowHeight); 
+                            this.sheetEl.scrollBy(colIncrement * this.columnWidth, rowIncrement * this.rowHeight);
+                        }
+                    }
+                    
+                    else{
+                        this.lastVirtualPosition = this.lastVirtualPosition + (rowIncrement * this.rowHeight); 
+                        this.sheetEl.scrollBy(colIncrement * this.columnWidth, rowIncrement * this.rowHeight);
+                    }
+                } 
                 
-                if(this.selections[this.currentSelectionIndex].start.row < 0) {
-                    this.selections[this.currentSelectionIndex].start.row++;
+
+                                                                        
+                if(this.selections[this.currentSelectionIndex].end.row < 0) {
+                    this.selections[this.currentSelectionIndex].end.row++;
                     this.lastVirtualPosition = this.lastVirtualPosition + this.rowHeight; 
                 }
-                if(this.selections[this.currentSelectionIndex].start.row > this.rowCount - 1){
-                    this.selections[this.currentSelectionIndex].start.row--;
+                if(this.selections[this.currentSelectionIndex].end.row > this.rowCount - 1){
+                    this.selections[this.currentSelectionIndex].end.row--;
                     this.lastVirtualPosition = this.lastVirtualPosition - this.rowHeight; 
                 } 
-                if(this.selections[this.currentSelectionIndex].start.col < 0) {
-                    this.selections[this.currentSelectionIndex].start.col++;
+                if(this.selections[this.currentSelectionIndex].end.col < 0) {
+                    this.selections[this.currentSelectionIndex].end.col++;
                 }
-                if(this.selections[this.currentSelectionIndex].start.col > this.colCount - 1){
-                    this.selections[this.currentSelectionIndex].start.col--;
+                if(this.selections[this.currentSelectionIndex].end.col > this.colCount - 1){
+                    this.selections[this.currentSelectionIndex].end.col--;
                 } 
 
                 this.selections[this.currentSelectionIndex].start.row = this.selections[this.currentSelectionIndex].end.row;
                 this.selections[this.currentSelectionIndex].start.col = this.selections[this.currentSelectionIndex].end.col;
                 
 
-                if(scroll) this.sheetEl.scrollBy(colIncrement * this.columnWidth, rowIncrement * this.rowHeight);
+                //if(scroll) this.sheetEl.scrollBy(colIncrement * this.columnWidth, rowIncrement * this.rowHeight);
            },
-           expandSelection: function(rowIncrement, colIncrement, scroll = true){              
+           expandSelection: function(rowIncrement, colIncrement, scroll = true, check = false){              
                 this.selections[this.currentSelectionIndex].end.row = this.selections[this.currentSelectionIndex].end.row + rowIncrement;
                 this.selections[this.currentSelectionIndex].end.col = this.selections[this.currentSelectionIndex].end.col + colIncrement;
-                if(scroll) this.lastVirtualPosition = this.lastVirtualPosition + (rowIncrement * this.rowHeight);                                                           
+                if(scroll){
+                   // this.lastVirtualPosition = this.lastVirtualPosition + (rowIncrement * this.rowHeight); 
+                    if(check){
+                        if(!this.isCellInView(this.selections[this.currentSelectionIndex].end.row, this.selections[this.currentSelectionIndex].end.col)){
+                            this.lastVirtualPosition = this.lastVirtualPosition + (rowIncrement * this.rowHeight); 
+                            this.sheetEl.scrollBy(colIncrement * this.columnWidth, rowIncrement * this.rowHeight);
+                        }
+                    }
+                    else{
+                        this.lastVirtualPosition = this.lastVirtualPosition + (rowIncrement * this.rowHeight); 
+                        this.sheetEl.scrollBy(colIncrement * this.columnWidth, rowIncrement * this.rowHeight);
+                    }
+                }                                                          
                 
                 if(this.selections[this.currentSelectionIndex].end.row < 0) {
                     this.selections[this.currentSelectionIndex].end.row++;
@@ -327,7 +362,12 @@
                     this.selections[this.currentSelectionIndex].end.col--;
                 } 
 
-                if(scroll) this.sheetEl.scrollBy(colIncrement * this.columnWidth, rowIncrement * this.rowHeight);
+                // if(scroll){
+                //     this.sheetEl.scrollBy(colIncrement * this.columnWidth, rowIncrement * this.rowHeight);
+                // //     let x = () => { this.sheetEl.scrollBy(colIncrement * this.columnWidth, rowIncrement * this.rowHeight); }
+                // //     x = x.bind(this);
+                // //    setTimeout(x) ; 
+                // } 
            },
            buildString: function(twoDArray, withStyle){
                const tab = '\t';
@@ -344,6 +384,12 @@
            },
            isCellInView: function(row, column){
                 let cellEL = this.sheetEl.querySelector(`[data-row="${row}"][data-col="${column}"]`);
+
+                if(!cellEL){
+                    console.log('no such cell');
+                    return false;
+                } 
+
                 let cellRect = cellEL && cellEL.getBoundingClientRect();
 
                 let isOut = this.gridRect.top > cellRect.top ||
@@ -360,6 +406,7 @@
                // put menu here if needed.
            },
            onKeyDown: function(event){
+               event.preventDefault();
                if(event.repeat && this.inDragScrolling) return;
 
                 if (event.ctrlKey  &&  event.key === "c") { 
@@ -377,19 +424,22 @@
                 }
 
                 if (event.key.startsWith('Arrow')) {
-                    event.preventDefault();
+                    //event.preventDefault();
 
-                    if(event.repeat && !this.inDragScrolling){
-                        this.inDragScrolling = true;
-                        document.onkeyup = keyup.bind(this);
-                        this.rafLoop();
-                    }
-                    else{
-                        let rowIncrement = 0;
-                        let colIncrement = 0;
-                        let scroll = false;             
+                    // if(event.repeat && !this.inDragScrolling){
+                    //     console.log('contunue');
+                    //     this.inDragScrolling = true;
+                    //     document.onkeyup = keyup.bind(this);
+                    //     console.log('isDragingScroll -------->', this.inDragScrolling);
+                    //     this.rafLoop();
+                    // }
+                    //else{
+                        //console.log('not contunue');
+                        // let rowIncrement = 0;
+                        // let colIncrement = 0;
+                        //let scroll = false;             
                         //let startCell = this.selections[this.currentSelectionIndex].start;
-                        let endCell = this.selections[this.currentSelectionIndex].end;
+                        //let endCell = this.selections[this.currentSelectionIndex].end;
                         //let cellRect = null;
 
                         // if(event.key == 'ArrowUp'){
@@ -424,42 +474,97 @@
                         // }
 
                         if(event.key == 'ArrowUp'){
-                            rowIncrement = -1;                   
+                            //rowIncrement = -1;   
+                            if(event.shiftKey){
+                                this.render = () => { this.expandSelection(-1, 0, true, true); };
+                            }  
+                            else{
+                                this.render = () => { this.moveSelection(-1, 0, true, true); };
+                            }
+                                
+
+                            //this.render = () => { this.expandSelection(1, 0, true, true); };
+                            //this.rafLoop();
+                            //return;      
                         } 
                         else if(event.key == 'ArrowDown'){
-                            rowIncrement = 1;
+                            //rowIncrement = 1;
+                            if(event.shiftKey){
+                                this.render = () => { this.expandSelection(1, 0, true, true); };
+                            }  
+                            else{
+                                this.render = () => { this.moveSelection(1, 0, true, true); };
+                            }
                         } 
                         else if(event.key == 'ArrowLeft'){
-                            colIncrement = -1;
+                            //colIncrement = -1;
+                            if(event.shiftKey){
+                                this.render = () => { this.expandSelection(0, -1, true, true); };
+                            }  
+                            else{
+                                this.render = () => { this.moveSelection(0, -1, true, true); };
+                            } 
                         } 
                         else if(event.key == 'ArrowRight'){
-                            colIncrement = 1;
+                            //colIncrement = 1;
+                            if(event.shiftKey){
+                                this.render = () => { this.expandSelection(0, 1, true, true); };
+                            }  
+                            else{
+                                this.render = () => { this.moveSelection(0, 1, true, true); };
+                            } 
                         } 
                         else{
                             throw 'key not found...'; 
                         }
 
-                        
-                        if(!this.isCellIndexWithinRange(endCell.row + rowIncrement, endCell.col + colIncrement)) return;
 
-                        scroll = !this.isCellInView(endCell.row + rowIncrement, endCell.col + colIncrement);
-
-                        if(event.shiftKey){
-                            this.render = () => { this.expandSelection(rowIncrement, colIncrement, scroll); };
+                        if(event.repeat && !this.inDragScrolling){
+                            document.onkeyup = keyup.bind(this);
+                            this.inDragScrolling = true;
+                            this.rafLoop();
                         }
                         else{
-                            this.render = () =>{
-                                this.expandSelection(rowIncrement, colIncrement, scroll);
-                                let startCell = this.selections[this.currentSelectionIndex].start;
-                                // endCell.row = startCell.row; //this is to increment start
-                                // endCell.col = startCell.col; // should I increment start or end ?
-                                startCell.row = endCell.row;
-                                startCell.col = endCell.col;
-                                //if not in view scroll to.
-                            };                 
+                            this.render();
                         }
                         
-                        this.render();
+                        // if(!this.isCellIndexWithinRange(endCell.row + rowIncrement, endCell.col + colIncrement)) return;
+
+                        // scroll = !this.isCellInView(endCell.row + rowIncrement, endCell.col + colIncrement);
+
+
+
+                        // // if(event.shiftKey){
+                        // //     this.render = () => { 
+                        // //         if(!this.isCellIndexWithinRange(endCell.row + rowIncrement, endCell.col + colIncrement)) return;
+                        // //         let scroll = !this.isCellInView(endCell.row + rowIncrement, endCell.col + colIncrement);
+                        // //         this.expandSelection(rowIncrement, colIncrement, scroll); 
+                        // //     }; 
+                        // // }
+                        // // else{
+                        // //     this.render = () =>{
+                        // //         // if(!this.isCellIndexWithinRange(endCell.row + rowIncrement, endCell.col + colIncrement)) return;
+                        // //         // let scroll = !this.isCellInView(endCell.row + rowIncrement, endCell.col + colIncrement);
+                        // //         //console.log('scroll -->>',scroll);
+                        // //         let scroll = true;
+                        // //         this.expandSelection(rowIncrement, colIncrement, scroll);
+                        // //         let startCell = this.selections[this.currentSelectionIndex].start;
+                        // //         // endCell.row = startCell.row; //this is to increment start
+                        // //         // endCell.col = startCell.col; // should I increment start or end ?
+                        // //         startCell.row = endCell.row;
+                        // //         startCell.col = endCell.col;
+                        // //         //if not in view scroll to.
+                        // //     };                 
+                        // // }
+                        
+                        // // this.render = this.render.bind(this);
+                        // // this.render();
+
+
+
+
+                        //requestAnimationFrame(this.render.bind(this));
+
                         // if(event.repeat && !this.rafRef){
                         //     this.inDragScrolling = true;
                         //     document.onkeyup = keyup.bind(this);
@@ -469,15 +574,16 @@
                         // else{
                         //     this.render();
                         // }
-                    }
+                    //}
 
                 }
 
                             
                 function keyup(){
-                    this.inDragScrolling = false;
-                    cancelAnimationFrame(this.rafRef);
+                     cancelAnimationFrame(this.rafRef);
                     this.rafRef = null;
+                    this.inDragScrolling = false;
+
                     document.onkeyup = null;
                 }
            }     
