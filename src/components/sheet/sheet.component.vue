@@ -14,6 +14,7 @@
   
     import Grid from './grid.component.vue';
     import SelectionArea from './selection-area.component.vue';
+    import {convertColumns, convertRows} from '../../services/sheet-data.service.js';
 
     export default {
         components:{
@@ -21,6 +22,9 @@
             selectionArea: SelectionArea
         },
         mounted: function(){
+            let convertedCols = convertColumns(this.meta);
+            let convertedRows = convertRows(this.meta, convertedCols);
+
             let that = this;
             let vSheet = that.$el.querySelector('.v-sheet');
             this.sheetEl = vSheet;
@@ -195,6 +199,7 @@
             dragSelect(vSheet);
         },
         props:{
+            template: {type: Object, required: true },
             meta: {type: Object, required: true }, 
             rowHeight: {type: Number, required: false, default: 20 },
             columnWidth: {type: Number, required: false, default: 90 }
@@ -300,7 +305,7 @@
                             this.sheetEl.scrollBy(colIncrement * this.columnWidth, rowIncrement * this.rowHeight);
                         }
                     }
-                    
+
                     else{
                         this.lastVirtualPosition = this.lastVirtualPosition + (rowIncrement * this.rowHeight); 
                         this.sheetEl.scrollBy(colIncrement * this.columnWidth, rowIncrement * this.rowHeight);
