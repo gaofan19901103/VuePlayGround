@@ -4,7 +4,7 @@
                 v-for="col in columns" v-bind:key="col.colIndex"
                 :row-index="row.rowIndex"
                 :col-index="col.colIndex"
-                :value="row.Values[col.Col] ? row.Values[col.Col].Val : ''"
+                :value="row.cells[col.colId].value"
             >
             </cell>
         </div>

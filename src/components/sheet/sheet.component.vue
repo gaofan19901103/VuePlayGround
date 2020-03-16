@@ -2,7 +2,7 @@
   <div class="v-sheet-vessel" v-on-resize="onResize">
     
     <div class="v-sheet" @scroll="onScroll($event)" @keydown="onKeyDown($event)" @contextmenu.prevent="onMenu" tabindex="0" ref="SheetEl">
-        <grid :virtual-list="virtualList" :columns="indexedCols" :grid-top="gridTop"></grid>    
+        <grid :virtual-list="virtualList" :header-rows="headerRows" :columns="indexedCols" :grid-top="gridTop"></grid>    
         <selection-area :selections="selections"></selection-area>
         <div class="vault" :style="{ height: rowCount * rowHeight + 'px' }"></div>
     </div>
@@ -14,17 +14,22 @@
   
     import Grid from './grid.component.vue';
     import SelectionArea from './selection-area.component.vue';
-    import {convertColumns, convertRows} from '../../services/sheet-data.service.js';
+    import {convertColumns, convertRows, getHeaderRows} from '../../services/sheet-data.service.js';
 
     export default {
         components:{
             grid: Grid,
             selectionArea: SelectionArea
         },
-        mounted: function(){
+        created: function(){
             let convertedCols = convertColumns(this.meta);
             let convertedRows = convertRows(this.meta, convertedCols);
 
+            this.headerRows = getHeaderRows(convertedCols);
+            this.indexedCols = convertedCols;
+            this.indexedRows = convertedRows;
+        },
+        mounted: function(){
             let that = this;
             let vSheet = that.$el.querySelector('.v-sheet');
             this.sheetEl = vSheet;
@@ -207,8 +212,11 @@
         data:function(){
             return{
                 //meta data
-                indexedRows: Object.keys(this.meta.Rows).map((x,y) => Object.assign(this.meta.Rows[x], {rowIndex: y })),
-                indexedCols: this.meta.Columns.map((x,y) => Object.assign(x, {colIndex: y })),
+                // indexedRows: Object.keys(this.meta.Rows).map((x,y) => Object.assign(this.meta.Rows[x], {rowIndex: y })),
+                // indexedCols: this.meta.Columns.map((x,y) => Object.assign(x, {colIndex: y })),
+                headerRows: [],
+                indexedRows: [],
+                indexedCols: [],
                 //matrix: this.meta.map(x => Object.keys(x).map(y => x[y])),
 
                 //sheet meta
@@ -247,6 +255,10 @@
                 let startIndex = scrolledRowCount  - this.virtualBuffer < 0 ? 0 : scrolledRowCount  - this.virtualBuffer;   
                 let endIndex = startIndex + visibleRowCount + this.virtualBuffer * 2;                      
                 let result = this.indexedRows.slice(startIndex, endIndex);
+
+                // if(result[0].rowIndex != 0){
+                //     result.unshift(this.headerRow);
+                // }
 
                 console.log('virtual list',result);
                 return result;

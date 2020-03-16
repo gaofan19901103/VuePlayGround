@@ -10,12 +10,21 @@
                 </div>
             </div> -->
 
-            <div class="grid-row" v-for="item in virtualList" v-bind:key="item.rowIndex">
+            <div class="grid-row" v-for="item in headerRows" v-bind:key="item.rowIndex" style="position: sticky; top: 0;">
                 <cell
                     v-for="col in columns" v-bind:key="col.colIndex"
                     :row-index="item.rowIndex"
                     :col-index="col.colIndex"
-                    :value="item.Values[col.Col] ? item.Values[col.Col].Val : ''"
+                    :value="item.cells[col.colId].value"
+                >
+                </cell>
+            </div>
+            <div :class="{'grid-row': true, 'freeze': item.freeze }" v-for="item in virtualList" v-bind:key="item.rowIndex">
+                <cell
+                    v-for="col in columns" v-bind:key="col.colIndex"
+                    :row-index="item.rowIndex"
+                    :col-index="col.colIndex"
+                    :value="item.cells[col.colId].value"
                 >
                 </cell>
             </div>
@@ -37,6 +46,7 @@
         },
         props:{
            virtualList: {type: Array, required: false, default: [] },
+           headerRows: {type: Array, required: false, default: [] },
            columns: {type: Array, required: false, default: []},
            gridTop: {type: Number, required: false, default: 0}
         },
@@ -65,28 +75,28 @@
                 box-sizing: border-box;
             }
 
-            .grid-header{
-                display: flex;
-                height: var(--row-height);  
-                position: sticky;
-                top: 0;
-                background-color: aqua;
-                z-index: 30;
+            // .grid-header{
+            //     display: flex;
+            //     height: var(--row-height);  
+            //     position: sticky;
+            //     top: 0;
+            //     background-color: aqua;
+            //     z-index: 30;
 
-                .grid-column:first-child{
-                    position: sticky;
-                    left:0;
-                    z-index: 40;
-                    background-color: aqua;
-                }
+            //     .grid-column:first-child{
+            //         position: sticky;
+            //         left:0;
+            //         z-index: 40;
+            //         background-color: aqua;
+            //     }
 
-                .grid-column:nth-child(2){
-                    position: sticky;
-                    left: 90;
-                    z-index: 40;
-                    background-color: aqua;
-                }
-            }
+            //     .grid-column:nth-child(2){
+            //         position: sticky;
+            //         left: 90;
+            //         z-index: 40;
+            //         background-color: aqua;
+            //     }
+            // }
 
             .grid-row{
                 display: flex;
@@ -115,28 +125,28 @@
                 border-left: 0.25px solid var(--grid-border-color);            
             }
 
-            .grid-cell[data-col="0"]{
-                background-color: grey;
-                position: sticky;
-                left: 0px;
-                //position: fixed;
-                //position: absolute;
-            }
+            // .grid-cell[data-col="0"]{
+            //     background-color: grey;
+            //     position: sticky;
+            //     left: 0px;
+            //     //position: fixed;
+            //     //position: absolute;
+            // }
 
 
-            .grid-cell[data-col="1"]{
-                background-color: grey;
-                position: sticky;
-                left: 90px;
-                //position: fixed;
-                //position: absolute;
-            }
+            // .grid-cell[data-col="1"]{
+            //     background-color: grey;
+            //     position: sticky;
+            //     left: 90px;
+            //     //position: fixed;
+            //     //position: absolute;
+            // }
 
-            .grid-row:first-child{
-                position: sticky;
-                top: 0;
-                background-color: aqua;
-            }
+            // .grid-row:first-child{
+            //     position: sticky;
+            //     top: 0;
+            //     background-color: aqua;
+            // }
 
 
             // .grid-cell[data-col="3"]{
@@ -145,6 +155,12 @@
 
             // .grid-cell[data-row="3"]{
             //     background-color: red;
+            // }
+
+            // .freeze{
+            //     position: sticky;
+            //     top: 0;
+            //     background-color: white;
             // }
         }
 
