@@ -3,7 +3,8 @@ window.Portal.Utils = {};
 window.Portal.Utils.Tooltip = {};
 
 window.Portal.Utils.getMouseEqurant = function (mouseX, mouseY, targetRect, headerRowCount = 1) {
-    let uppperEdge = targetRect.top + headerRowCount * 20;
+    //let uppperEdge = targetRect.top + headerRowCount * 20;
+    let uppperEdge = targetRect.top;
     let lowerEdge = targetRect.top + targetRect.height;
     let leftEdge = targetRect.left;
     let rightEdge = targetRect.left + targetRect.width;

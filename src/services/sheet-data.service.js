@@ -16,10 +16,10 @@
 //     return colMap;
 // }
 
-export function convertColumns(FraTemplate){
+export function convertColumns(FraMeta){
     let columnArray = [];
 
-    FraTemplate.Columns.forEach((item, index ) => {
+    FraMeta.Columns.forEach((item, index ) => {
         if(item.Visibility == 'never') return;
 
         columnArray.push({
@@ -68,35 +68,36 @@ export function convertColumns(FraTemplate){
 // }
 
 export function convertRows(FraMeta, convertColumns){
-    let rows = JSON.parse(JSON.stringify(FraMeta.Rows));
-    let rowArray = [];
+    let metaRows = JSON.parse(JSON.stringify(FraMeta.Rows));
+    let metaRowArray = Object.keys(metaRows).map(x => {return { ...metaRows[x], ...{rowId: x} }});
 
+    let result = [];
 
-    Object.keys(rows).forEach((key, rowIndex) =>{
-        let row = {
-            rowIndex: rowIndex + 1,
-            rowId: key,
-            cells: {},
-            freeze: false
+    metaRowArray.forEach((row, rowIndex) =>{
+        let item = {
+            rowIndex: rowIndex,
+            rowId: row.rowId,
+            freeze: false,
+            height: row.Height || 20,
+            cells: {}
         };
 
-        convertColumns.forEach((item, colIndex) => {
-            row.cells[item.colId] = {};
-            row.cells[item.colId].x = colIndex * item.width;
-            row.cells[item.colId].y = (rowIndex + 1) * 30;  // this 30 is row height, get it dynamically.
+        convertColumns.forEach((col, colIndex) =>{
+            let cell = {};
 
-            if(rows[key].Values[item.colId]){
-                row.cells[item.colId].value = rows[key].Values[item.colId].Val || '';
-            }
-            else{
-                row.cells[item.colId].value = '';
-            }
+            cell.rowId = row.rowId;
+            cell.colId = col.colId;
+            cell.x = colIndex == 0 ? 0 : item.cells[colIndex - 1].x  + convertColumns[colIndex - 1].width;
+            cell.y = rowIndex == 0 ? 0 : result[rowIndex - 1].cells[colIndex].y + (metaRowArray[rowIndex - 1].Height || 20);
+            cell.value = (row.Values[col.colId] && row.Values[col.colId].Val) || '';
+
+            item.cells[colIndex] = cell;
         });
 
-        rowArray.push(row);
+        result.push(item);
     });
 
-    return rowArray;
+    return result;
 }
 
 export function getHeaderRows(convertColumns){

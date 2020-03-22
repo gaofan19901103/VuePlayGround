@@ -10,21 +10,25 @@
                 </div>
             </div> -->
 
-            <div class="grid-row" v-for="item in headerRows" v-bind:key="item.rowIndex" style="position: sticky; top: 0;">
+            <!-- <div class="grid-row" v-for="item in headerRows" v-bind:key="item.rowIndex" style="position: sticky; top: 0; background-color: white;">
                 <cell
                     v-for="col in columns" v-bind:key="col.colIndex"
                     :row-index="item.rowIndex"
                     :col-index="col.colIndex"
                     :value="item.cells[col.colId].value"
+                    :freeze="item.freeze"
                 >
                 </cell>
-            </div>
-            <div :class="{'grid-row': true, 'freeze': item.freeze }" v-for="item in virtualList" v-bind:key="item.rowIndex">
+            </div> -->
+            <div :class="{'grid-row': true, 'freeze': item.freeze }" v-for="item in virtualList" v-bind:key="item.rowIndex" :style="{height: item.height + 'px'}">
                 <cell
                     v-for="col in columns" v-bind:key="col.colIndex"
                     :row-index="item.rowIndex"
                     :col-index="col.colIndex"
-                    :value="item.cells[col.colId].value"
+                    :value="item.cells[col.colIndex].value"
+                    :freeze="item.freeze"
+                    :height="item.height"
+                    :width="col.width"
                 >
                 </cell>
             </div>
@@ -46,7 +50,7 @@
         },
         props:{
            virtualList: {type: Array, required: false, default: [] },
-           headerRows: {type: Array, required: false, default: [] },
+           //headerRows: {type: Array, required: false, default: [] },
            columns: {type: Array, required: false, default: []},
            gridTop: {type: Number, required: false, default: 0}
         },

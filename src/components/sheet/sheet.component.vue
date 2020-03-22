@@ -1,9 +1,14 @@
 <template>
   <div class="v-sheet-vessel" v-on-resize="onResize">
     
-    <div class="v-sheet" @scroll="onScroll($event)" @keydown="onKeyDown($event)" @contextmenu.prevent="onMenu" tabindex="0" ref="SheetEl">
-        <grid :virtual-list="virtualList" :header-rows="headerRows" :columns="indexedCols" :grid-top="gridTop"></grid>    
-        <selection-area :selections="selections"></selection-area>
+    <div class="v-sheet" tabindex="0"
+        @scroll="onScroll($event)" 
+        @contextmenu.prevent="onMenu" 
+        @keydown.prevent="onKeyDown($event)" 
+        @mousedown="onMouseDown($event)">
+        <!-- <xxx :header-rows="headerRows" :columns="indexedCols"></xxx> -->
+        <grid :virtual-list="virtualList" :columns="indexedCols" :grid-top="gridTop"></grid>    
+        <selection-area :selections="selections" :indexed-rows="indexedRows" :indexed-cols="indexedCols"></selection-area>
         <div class="vault" :style="{ height: rowCount * rowHeight + 'px' }"></div>
     </div>
 
@@ -13,13 +18,15 @@
 <script>
   
     import Grid from './grid.component.vue';
+    import GridHeader from './grid-header.component.vue';
     import SelectionArea from './selection-area.component.vue';
     import {convertColumns, convertRows, getHeaderRows} from '../../services/sheet-data.service.js';
 
     export default {
         components:{
             grid: Grid,
-            selectionArea: SelectionArea
+            selectionArea: SelectionArea,
+            xxx: GridHeader
         },
         created: function(){
             let convertedCols = convertColumns(this.meta);
@@ -30,178 +37,12 @@
             this.indexedRows = convertedRows;
         },
         mounted: function(){
-            let that = this;
-            let vSheet = that.$el.querySelector('.v-sheet');
-            this.sheetEl = vSheet;
+            this.sheetEl = this.$el.querySelector('.v-sheet');
             this.sheetHeight = this.$el.clientHeight;
+            this.gridRect = this.$el.querySelector('.v-sheet').getBoundingClientRect(); 
+
             this.rowCount = Object.keys(this.meta.Rows).length;
-            this.colCount = this.meta.Columns.length;          
-            this.gridRect = this.$el.querySelector('.v-sheet').getBoundingClientRect();
-             
-            function dragSelect(elmnt) {
-                var rowIndex = null;
-                var columnIndex = null;
-                
-                
-                elmnt.onmousedown = startDrag;
-                
-                function startDrag(e) {
-                
-                    if(e.which == 3) return;
-                    
-                    that.gridRect = that.sheetEl.getBoundingClientRect();
-                    let dataSet = e.target.dataset;
-                    if(dataSet.row == undefined || dataSet.col == undefined){
-                        //console.error('which cell is it???');
-                        return;
-                    } 
-
-                    rowIndex = Number(dataSet.row);
-                    columnIndex = Number(dataSet.col);
-                    console.log('mouse down', rowIndex, columnIndex);                   
-
-                    if (e.which == 1) {
-                        if(e.shiftKey){
-                            e.preventDefault();
-                            that.selections[that.currentSelectionIndex].end.row = rowIndex;
-                            that.selections[that.currentSelectionIndex].end.col = columnIndex;
-                        }
-                        else{
-                            if(e.ctrlKey){
-                                that.currentSelectionIndex++;
-                                that.selections = that.selections.concat([{start:{row: 0, col: 0}, end:{row: 0, col: 0}}]);
-                            }
-                            else{
-                                that.selections.splice(1);
-                                that.currentSelectionIndex = 0;
-                            }
-
-                            that.selections[that.currentSelectionIndex].start.row = rowIndex;
-                            that.selections[that.currentSelectionIndex].start.col = columnIndex;
-                            that.selections[that.currentSelectionIndex].end.row = rowIndex;
-                            that.selections[that.currentSelectionIndex].end.col = columnIndex;
-                        }
-                                
-                        document.onmousemove = dragging;
-                    }
-                    
-                    document.onmouseup = endDrag;     
-                }
-
-                function dragging(e) {
-                    
-                    e.preventDefault();
-                    //let rect = that.sheetEl.getBoundingClientRect(); // maybe slow.
-                    that.currentEqurant = Portal.Utils.getMouseEqurant(e.clientX, e.clientY, that.gridRect);   
-                    //that.currentEqurant = Portal.Utils.getMouseEqurant(e.pageX, e.pageY, that.gridRect);        //this is wrong.
-                    console.log('--------------equrant',  that.currentEqurant);
-                    if(that.currentEqurant == 5){
-                        console.log('cancel ----------------- interval');
-                        that.inDragScrolling = false;
-                        // clearInterval(that.onDragScroll);
-                        // that.onDragScroll = null;
-
-                        cancelAnimationFrame(that.rafRef);
-                        that.rafRef = null;
-
-                        let dataSet = e.target.dataset;
-
-                        if(dataSet.row && dataSet.col && (rowIndex != dataSet.row || columnIndex != dataSet.col)){
-                            console.log('mouse moveing', e.target);
-                                                   
-                            rowIndex = Number(dataSet.row);
-                            columnIndex = Number(dataSet.col);
-
-                            if(that.selections[that.currentSelectionIndex] && that.selections[that.currentSelectionIndex].end){ //this needs to be considered.
-                                that.selections[that.currentSelectionIndex].end.col = columnIndex;
-                                that.selections[that.currentSelectionIndex].end.row = rowIndex;
-                            }                               
-                        }
-                    }
-                    else{
-                        that.inDragScrolling = true;                   
-                        // that.onDragScroll = that.onDragScroll || setInterval(function(){      
-                        //     console.log('setTimeInterval triggered');                       
-                        //         switch(that.currentEqurant) {
-                        //             case 1:
-                        //                 that.expandSelection(-1, -1);
-                        //                 break;
-                        //             case 2:
-                        //                 that.expandSelection(-1, 0);
-                        //                 break;
-                        //             case 3:
-                        //                 that.expandSelection(-1, 1);
-                        //                 break;
-                        //             case 4:
-                        //                 that.expandSelection(0, -1); 
-                        //                 break;
-                        //             case 6:
-                        //                 that.expandSelection(0, 1);
-                        //                 break;
-                        //             case 7:
-                        //                 that.expandSelection(1, -1);
-                        //                 break;
-                        //             case 8:
-                        //                 that.expandSelection(1, 0);
-                        //                 break;
-                        //             case 9:
-                        //                 that.expandSelection(1, 1); 
-                        //                 break;
-                        //             default:
-                        //                 console.error('equrant not found...');
-                        //                 break;
-                        //         }
-                        // }, that.scrollSpeed);    
-                        
-                        switch(that.currentEqurant) {
-                            case 1:
-                                that.render = () => { that.expandSelection(-1, -1); };
-                                break;
-                            case 2:
-                                that.render = () => { that.expandSelection(-1, 0); };
-                                break;
-                            case 3:
-                                that.render = () => { that.expandSelection(-1, 1); };
-                                break;
-                            case 4:
-                                that.render = () => { that.expandSelection(0, -1); }; 
-                                break;
-                            case 6:
-                                that.render = () => { that.expandSelection(0, 1); };
-                                break;
-                            case 7:
-                                that.render = () => { that.expandSelection(1, -1); };
-                                break;
-                            case 8:
-                                that.render = () => { that.expandSelection(1, 0); };
-                                break;
-                            case 9:
-                                that.render = () => { that.expandSelection(1, 1); }; 
-                                break;
-                            default:
-                                console.error('equrant not found...');
-                                break;
-                        }
-
-                        if(!that.rafRef)
-                            that.rafLoop();
-                    }                   
-                }
-
-                function endDrag(e) {
-                    console.log('cancel ----------------- interval');
-                    that.inDragScrolling = false;
-                    // clearInterval(that.onDragScroll);
-                    // that.onDragScroll = null;
-
-                    cancelAnimationFrame(that.rafRef);
-                    that.rafRef = null;
-                    document.onmouseup = null;
-                    document.onmousemove = null;
-                }       
-            }
-
-            dragSelect(vSheet);
+            this.colCount = this.meta.Columns.length;                  
         },
         props:{
             template: {type: Object, required: true },
@@ -228,11 +69,13 @@
 
                 //virtual scroll
                 lastVirtualPosition: 0,
-                virtualBuffer: 5, 
+                virtualBuffer: 0, 
                      
                 //drag scroll
+                rowIndex: null,
+                columnIndex: null,
                 currentOverCell: {row: null, col: null},
-                inDragScrolling: false,
+                isRAFLooping: false,
                 onDragScroll: null,
                 scrollSpeed: 20,
                 currentEqurant: 0,
@@ -244,7 +87,6 @@
 
                 render: null,
                 rafRef: null,
-                inRAFLooping: false
             }   
         },
         computed:{         
@@ -275,8 +117,8 @@
         },
         methods:{
            onScroll: function(e){
-              console.log('isDragingScroll -->', this.inDragScrolling);
-              if(this.inDragScrolling) return;
+              console.log('isDragingScroll -->', this.isRAFLooping);
+              if(this.isRAFLooping) return;
               if(Math.abs(e.target.scrollTop -  this.lastVirtualPosition) > this.virtualBuffer * this.rowHeight){
                     console.debug('virtual list re-render', e.target.scrollTop);
                     this.lastVirtualPosition = e.target.scrollTop;              
@@ -423,15 +265,16 @@
                // put menu here if needed.
            },
            onKeyDown: function(event){
-               event.preventDefault();
-               if(event.repeat && this.inDragScrolling) return;
+
+                if(event.repeat && this.isRAFLooping){
+                    return;
+                } 
 
                 if (event.ctrlKey  &&  event.key === "c") { 
                     this.copyCurrentSelection(); 
                 }
 
                 if (event.ctrlKey  &&  event.key === "a") { 
-                    event.preventDefault();
                     this.currentSelectionIndex = 0;
                     this.selections.splice(1);
                     this.selections[0].start.row = 0;
@@ -440,170 +283,180 @@
                     this.selections[0].end.col = this.colCount - 1;
                 }
 
-                if (event.key.startsWith('Arrow')) {
-                    //event.preventDefault();
-
-                    // if(event.repeat && !this.inDragScrolling){
-                    //     console.log('contunue');
-                    //     this.inDragScrolling = true;
-                    //     document.onkeyup = keyup.bind(this);
-                    //     console.log('isDragingScroll -------->', this.inDragScrolling);
-                    //     this.rafLoop();
-                    // }
-                    //else{
-                        //console.log('not contunue');
-                        // let rowIncrement = 0;
-                        // let colIncrement = 0;
-                        //let scroll = false;             
-                        //let startCell = this.selections[this.currentSelectionIndex].start;
-                        //let endCell = this.selections[this.currentSelectionIndex].end;
-                        //let cellRect = null;
-
-                        // if(event.key == 'ArrowUp'){
-                        //     console.log('up up up');
-                        //     rowIncrement = -1;
-                            
-                        //     let cellEL = this.sheetEl.querySelector(`[data-row="${endCell.row + rowIncrement}"][data-col="${endCell.col + colIncrement}"]`);
-                        //     cellRect = cellEL && cellEL.getBoundingClientRect();
-                        //     scroll = cellRect && this.gridRect.top > cellRect.top;
-                        // } 
-                        // else if(event.key == 'ArrowDown'){
-                        //     console.log('down down down');
-                        //     rowIncrement = 1;
-                        //     let cellEL = this.sheetEl.querySelector(`[data-row="${endCell.row + rowIncrement}"][data-col="${endCell.col + colIncrement}"]`);
-                        //     cellRect = cellEL && cellEL.getBoundingClientRect();
-                        //     scroll = cellRect && this.gridRect.top + this.gridRect.height < cellRect.top + cellRect.height;
-                        // } 
-                        // else if(event.key == 'ArrowLeft'){
-                        //     colIncrement = -1;
-                        //     let cellEL = this.sheetEl.querySelector(`[data-row="${endCell.row + rowIncrement}"][data-col="${endCell.col + colIncrement}"]`);
-                        //     cellRect = cellEL && cellEL.getBoundingClientRect();
-                        //     scroll = cellRect && this.gridRect.left > cellRect.left;
-                        // } 
-                        // else if(event.key == 'ArrowRight'){
-                        //     colIncrement = 1;
-                        //     let cellEL = this.sheetEl.querySelector(`[data-row="${endCell.row + rowIncrement}"][data-col="${endCell.col + colIncrement}"]`);
-                        //     cellRect = cellEL && cellEL.getBoundingClientRect();
-                        //     scroll = cellRect && this.gridRect.left + this.gridRect.width < cellRect.left + cellRect.width;
-                        // } 
-                        // else{
-                        //     throw 'key not found...'; 
-                        // }
-
-                        if(event.key == 'ArrowUp'){
-                            //rowIncrement = -1;   
-                            if(event.shiftKey){
-                                this.render = () => { this.expandSelection(-1, 0, true, true); };
-                            }  
-                            else{
-                                this.render = () => { this.moveSelection(-1, 0, true, true); };
-                            }
-                                
-
-                            //this.render = () => { this.expandSelection(1, 0, true, true); };
-                            //this.rafLoop();
-                            //return;      
-                        } 
-                        else if(event.key == 'ArrowDown'){
-                            //rowIncrement = 1;
-                            if(event.shiftKey){
-                                this.render = () => { this.expandSelection(1, 0, true, true); };
-                            }  
-                            else{
-                                this.render = () => { this.moveSelection(1, 0, true, true); };
-                            }
-                        } 
-                        else if(event.key == 'ArrowLeft'){
-                            //colIncrement = -1;
-                            if(event.shiftKey){
-                                this.render = () => { this.expandSelection(0, -1, true, true); };
-                            }  
-                            else{
-                                this.render = () => { this.moveSelection(0, -1, true, true); };
-                            } 
-                        } 
-                        else if(event.key == 'ArrowRight'){
-                            //colIncrement = 1;
-                            if(event.shiftKey){
-                                this.render = () => { this.expandSelection(0, 1, true, true); };
-                            }  
-                            else{
-                                this.render = () => { this.moveSelection(0, 1, true, true); };
-                            } 
-                        } 
+                if (event.key.startsWith('Arrow')) {            
+                    if(event.key == 'ArrowUp'){
+                        if(event.shiftKey){
+                            this.render = () => { this.expandSelection(-1, 0, true, true); };
+                        }  
                         else{
-                            throw 'key not found...'; 
-                        }
-
-
-                        if(event.repeat && !this.inDragScrolling){
-                            document.onkeyup = keyup.bind(this);
-                            this.inDragScrolling = true;
-                            this.rafLoop();
-                        }
+                            this.render = () => { this.moveSelection(-1, 0, true, true); };
+                        }  
+                    } 
+                    else if(event.key == 'ArrowDown'){
+                        if(event.shiftKey){
+                            this.render = () => { this.expandSelection(1, 0, true, true); };
+                        }  
                         else{
-                            this.render();
+                            this.render = () => { this.moveSelection(1, 0, true, true); };
                         }
-                        
-                        // if(!this.isCellIndexWithinRange(endCell.row + rowIncrement, endCell.col + colIncrement)) return;
-
-                        // scroll = !this.isCellInView(endCell.row + rowIncrement, endCell.col + colIncrement);
-
-
-
-                        // // if(event.shiftKey){
-                        // //     this.render = () => { 
-                        // //         if(!this.isCellIndexWithinRange(endCell.row + rowIncrement, endCell.col + colIncrement)) return;
-                        // //         let scroll = !this.isCellInView(endCell.row + rowIncrement, endCell.col + colIncrement);
-                        // //         this.expandSelection(rowIncrement, colIncrement, scroll); 
-                        // //     }; 
-                        // // }
-                        // // else{
-                        // //     this.render = () =>{
-                        // //         // if(!this.isCellIndexWithinRange(endCell.row + rowIncrement, endCell.col + colIncrement)) return;
-                        // //         // let scroll = !this.isCellInView(endCell.row + rowIncrement, endCell.col + colIncrement);
-                        // //         //console.log('scroll -->>',scroll);
-                        // //         let scroll = true;
-                        // //         this.expandSelection(rowIncrement, colIncrement, scroll);
-                        // //         let startCell = this.selections[this.currentSelectionIndex].start;
-                        // //         // endCell.row = startCell.row; //this is to increment start
-                        // //         // endCell.col = startCell.col; // should I increment start or end ?
-                        // //         startCell.row = endCell.row;
-                        // //         startCell.col = endCell.col;
-                        // //         //if not in view scroll to.
-                        // //     };                 
-                        // // }
-                        
-                        // // this.render = this.render.bind(this);
-                        // // this.render();
+                    } 
+                    else if(event.key == 'ArrowLeft'){
+                        if(event.shiftKey){
+                            this.render = () => { this.expandSelection(0, -1, true, true); };
+                        }  
+                        else{
+                            this.render = () => { this.moveSelection(0, -1, true, true); };
+                        } 
+                    } 
+                    else if(event.key == 'ArrowRight'){
+                        if(event.shiftKey){
+                            this.render = () => { this.expandSelection(0, 1, true, true); };
+                        }  
+                        else{
+                            this.render = () => { this.moveSelection(0, 1, true, true); };
+                        } 
+                    } 
+                    else{
+                        throw 'key not found...'; 
+                    }
 
 
-
-
-                        //requestAnimationFrame(this.render.bind(this));
-
-                        // if(event.repeat && !this.rafRef){
-                        //     this.inDragScrolling = true;
-                        //     document.onkeyup = keyup.bind(this);
-                        //     this.rafLoop();
-                        // // requestAnimationFrame(this.render);
-                        // }
-                        // else{
-                        //     this.render();
-                        // }
-                    //}
-
+                    if(event.repeat && !this.isRAFLooping){
+                        document.onkeyup = this.onKeyUp;
+                        this.isRAFLooping= true;
+                        this.rafLoop();
+                    }
+                    else{
+                        this.render();
+                    }                       
                 }
+           },
+           onKeyUp: function(){
+                cancelAnimationFrame(this.rafRef);
+                this.rafRef = null;
 
+                this.isRAFLooping = false;
+
+                document.onkeyup = null;
+           },
+           onMouseDown:  function (e) {
+                let that = this;
+                var rowIndex = null;
+                var columnIndex = null;
+                                                
+                if(e.which == 3) return;
+                
+                this.gridRect = this.sheetEl.getBoundingClientRect();
+                let dataSet = e.target.dataset;
+                if(dataSet.row == undefined || dataSet.col == undefined){
+                    //console.error('which cell is it???');
+                    return;
+                } 
+
+                this.rowIndex = Number(dataSet.row);
+                this.columnIndex = Number(dataSet.col);
+                console.log('mouse down', this.rowIndex, this.columnIndex);                   
+
+                if (e.which == 1) {
+                    if(e.shiftKey){
+                        e.preventDefault();
+                        this.selections[this.currentSelectionIndex].end.row = this.rowIndex;
+                        this.selections[this.currentSelectionIndex].end.col = this.columnIndex;
+                    }
+                    else{
+                        if(e.ctrlKey){
+                            this.currentSelectionIndex++;
+                            this.selections = this.selections.concat([{start:{row: 0, col: 0}, end:{row: 0, col: 0}}]);
+                        }
+                        else{
+                            this.selections.splice(1);
+                            this.currentSelectionIndex = 0;
+                        }
+
+                        this.selections[this.currentSelectionIndex].start.row = this.rowIndex;
+                        this.selections[this.currentSelectionIndex].start.col = this.columnIndex;
+                        this.selections[this.currentSelectionIndex].end.row = this.rowIndex;
+                        this.selections[this.currentSelectionIndex].end.col = this.columnIndex;
+                    }
                             
-                function keyup(){
-                     cancelAnimationFrame(this.rafRef);
+                    document.onmousemove = this.onMouseMove;
+                }
+                
+                document.onmouseup = this.onEndDarg;                                             
+            },
+            onMouseMove: function(e){
+
+                e.preventDefault();
+                this.currentEqurant = Portal.Utils.getMouseEqurant(e.clientX, e.clientY, this.gridRect);   
+                console.log('--------------equrant',  this.currentEqurant);
+                if(this.currentEqurant == 5){
+                    console.log('cancel ----------------- interval');
+                    
+                    cancelAnimationFrame(this.rafRef);
                     this.rafRef = null;
-                    this.inDragScrolling = false;
+                    this.isRAFLooping = false;
 
-                    document.onkeyup = null;
+
+                    let dataSet = e.target.dataset;
+                    //lastCell = e.target;
+
+                    if(dataSet.row && dataSet.col && (this.rowIndex != dataSet.row || this.columnIndex != dataSet.col)){
+                        console.log('mouse moveing', e.target);
+                                                
+                        this.rowIndex = Number(dataSet.row);
+                        this.columnIndex = Number(dataSet.col);
+
+                        if(this.selections[this.currentSelectionIndex] && this.selections[this.currentSelectionIndex].end){ //this needs to be considered.
+                            this.selections[this.currentSelectionIndex].end.col = this.columnIndex;
+                            this.selections[this.currentSelectionIndex].end.row = this.rowIndex;
+                        }                               
+                    }
                 }
-           }     
+                else{
+                    this.isRAFLooping = true;                                         
+                    switch(this.currentEqurant) {
+                        case 1:
+                            this.render = () => { this.expandSelection(-1, -1); };
+                            break;
+                        case 2:
+                            this.render = () => { this.expandSelection(-1, 0); };
+                            break;
+                        case 3:
+                            this.render = () => { this.expandSelection(-1, 1); };
+                            break;
+                        case 4:
+                            this.render = () => { this.expandSelection(0, -1); }; 
+                            break;
+                        case 6:
+                            this.render = () => { this.expandSelection(0, 1); };
+                            break;
+                        case 7:
+                            this.render = () => { this.expandSelection(1, -1); };
+                            break;
+                        case 8:
+                            this.render = () => { this.expandSelection(1, 0); };
+                            break;
+                        case 9:
+                            this.render = () => { this.expandSelection(1, 1); }; 
+                            break;
+                        default:
+                            console.error('equrant not found...');
+                            break;
+                    }
+
+                    if(!this.rafRef)
+                        this.rafLoop();
+                }                                
+            },
+            onEndDarg: function(e){
+                console.log('cancel ----------------- interval');
+
+                this.isRAFLooping = false; 
+                cancelAnimationFrame(this.rafRef);
+                this.rafRef = null;
+                document.onmouseup = null;
+                document.onmousemove = null;
+            }     
         }
     };
 </script>

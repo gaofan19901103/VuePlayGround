@@ -1,5 +1,5 @@
 <template>
-   <div class="grid-cell" :data-col="colIndex" :data-row="rowIndex" :style="style">{{value}}</div>
+   <div class="grid-cell" :data-col="colIndex" :data-row="rowIndex" :data-freeze="freeze" :style="style">{{value}}</div>
 </template>
 
 <script>
@@ -8,6 +8,7 @@
            rowIndex: { type: [Number, String], required: true },
            colIndex: { type: [Number, String], required: true },
            value: { type: String, required: false, default: '' },
+           freeze: { type: Boolean, required: false, default: false },
            height: {type: Number, required: false, default: 20},
            width: {type: Number, required: false, default: 90},
            span: {type: Number, required: false, default: 1},

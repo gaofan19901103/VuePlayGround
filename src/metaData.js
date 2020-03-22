@@ -1318,7 +1318,9 @@ export var FraMeta = {
   
         "Defaultable": "No",
   
-        "ValueType": "Text"
+        "ValueType": "Text",
+
+        "Width": 50
   
       },
   
@@ -2043,7 +2045,6 @@ export var FraMeta = {
     "Rows": {
   
       "4710254": {
-  
         "_t": "Row",
   
         "Label": "Serial IMM",
@@ -2087,6 +2088,7 @@ export var FraMeta = {
       },
   
       "4710255": {
+       // "Height": 50,
   
         "_t": "Row",
   
