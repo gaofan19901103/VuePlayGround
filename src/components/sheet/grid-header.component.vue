@@ -11,6 +11,7 @@
                 :freeze="col.freeze"
                 :height="item.height"
                 :width="col.width"
+                :header="isHeader"
                 :x="item.cells[col.colIndex].x"
             >
             </cell>
@@ -38,6 +39,7 @@
         },
         data:function(){
             return{
+                isHeader: true
                 // noBottomBorder: false,
                 // showHeaderSelectionArea: false
             };

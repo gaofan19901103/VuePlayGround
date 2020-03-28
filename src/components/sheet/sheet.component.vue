@@ -3,7 +3,7 @@
     <div class="v-sheet-container" tabindex="0"  @mousedown="onMouseDown($event)">
         
         <div class="v-sheet-header">
-            <xxx :columns="indexedCols" :indexed-header-rows="indexedHeaderRows" :width="sheetWidth" :selections="selections"></xxx>
+            <grid-header :columns="indexedCols" :indexed-header-rows="indexedHeaderRows" :width="sheetWidth" :selections="selections"></grid-header>
         </div>
  
         <div class="v-sheet" tabindex="0"
@@ -17,6 +17,7 @@
         </div>
 
 
+        <!-- <freeze-selection-area :selections="selections" :indexed-rows="indexedAll" :indexed-cols="indexedCols"></freeze-selection-area> -->
     </div>
 
 
@@ -35,7 +36,7 @@
         components:{
             grid: Grid,
             selectionArea: SelectionArea,
-            xxx: GridHeader
+            gridHeader: GridHeader
         },
         created: function(){
             let convertedCols = convertColumns(this.meta);
@@ -104,6 +105,8 @@
                 scrollSpeed: 20,
                 currentEqurant: 0,
                 lastCell: null,
+                lastArea: null,
+                startCell: null,
 
                 //cell selections
                 selections:[{start:{row: 0, col: 0}, end:{row: 0, col: 0}}],
@@ -142,7 +145,8 @@
         },
         methods:{
            onScroll: function(e){
-               this.sheetHeaderEl.scrollLeft = this.sheetEl.scrollLeft;
+              this.sheetHeaderEl.scrollLeft = this.sheetEl.scrollLeft;
+
               console.log('isDragingScroll -->', this.isRAFLooping);
               if(this.isRAFLooping) return;
               if(Math.abs(e.target.scrollTop -  this.lastVirtualPosition) > this.virtualBuffer * this.rowHeight){
@@ -287,6 +291,17 @@
            isCellIndexWithinRange: function(row, column){
                return row >=0 && row < this.rowCount && column >= 0 && column < this.colCount;
            },
+           getCurrentArea:function(currentCell){
+               if(currentCell.dataset.header){
+                   return 'header';
+               }
+               else if(currentCell.dataset.freeze){
+                   return 'freeze';
+               }
+               else{
+                   return 'body';
+               }
+           },
            onMenu: function(event){
                // put menu here if needed.
            },
@@ -405,6 +420,7 @@
                         this.selections[this.currentSelectionIndex].end.col = this.columnIndex;
                     }
                             
+                    this.startCell = e.target;                            
                     document.onmousemove = this.onMouseMove;
                 }
                 
@@ -413,26 +429,72 @@
             onMouseMove: function(e){
 
                 e.preventDefault();
-                this.currentEqurant = Portal.Utils.getMouseEqurant(e.clientX, e.clientY, this.gridRect);   
+
+                let currentCell = e.target;
+               // let lastCell = this.lastCell;
+                
+                
+                if(this.startCell && this.startCell.dataset.header && !currentCell.dataset.header){
+                    this.sheetEl.scrollTo(this.sheetEl.scrollLeft, 0);
+                }
+                else if(this.startCell && this.startCell.dataset.freeze && !currentCell.dataset.freeze){
+                    this.sheetEl.scrollTo(0, this.sheetEl.scrollTop);
+                }
+                
+
+                //this.lastArea = this.getCurrentArea(currentCell);
+                
+
+                // if((!this.lastCell || this.lastCell.dataset.header) && currentCell.dataset.header){
+                //     this.currentEqurant = 5;
+                //     this.lastCell = currentCell;
+                // }
+                // else if(this.lastCell && !this.lastCell.dataset.header && currentCell.dataset.header){
+                //     this.currentEqurant = 2;
+                //     this.lastCell = lastCell;
+                // }
+                // else{
+                //     this.currentEqurant = Portal.Utils.getMouseEqurant(e.clientX, e.clientY, this.gridRect, currentCell); 
+                //     this.lastCell = currentCell;
+                // }
+
+                
+
+                // if((!this.lastCell || this.lastCell.dataset.header) && currentCell.dataset.header){
+                //     this.currentEqurant = 5;
+                // }
+                // else{
+                //      this.currentEqurant = Portal.Utils.getMouseEqurant(e.clientX, e.clientY, this.gridRect);
+                //      this.lastCell = currentCell;
+                // }
+ 
+                if(this.startCell && this.startCell.dataset.header && currentCell.dataset.header){
+                    this.currentEqurant = 5;
+                }
+                else if(this.startCell && !this.startCell.dataset.freeze && currentCell.dataset.freeze && this.sheetEl.scrollLeft > 0){
+                    this.currentEqurant = 4;
+                }
+                else{
+                    this.currentEqurant = Portal.Utils.getMouseEqurant(e.clientX, e.clientY, this.gridRect);
+                }
+                
+                this.lastCell = currentCell;
+                
+
                 console.log('--------------equrant',  this.currentEqurant);
                 if(this.currentEqurant == 5){
                     console.log('cancel ----------------- interval');
-                    
-                    if(this.lastCell && this.lastCell.dataset.freeze && !e.target.dataset.freeze){
-                        this.sheetEl.scrollTo(0, this.sheetEl.scrollTop);
-                    }
-                    this.lastCell = e.target;
 
                     cancelAnimationFrame(this.rafRef);
                     this.rafRef = null;
                     this.isRAFLooping = false;
 
 
-                    let dataSet = e.target.dataset;
-                    //lastCell = e.target;
+                    let dataSet = currentCell.dataset;
+
 
                     if(dataSet.row && dataSet.col && (this.rowIndex != dataSet.row || this.columnIndex != dataSet.col)){
-                        console.log('mouse moveing', e.target);
+                        console.log('mouse moveing', currentCell);
                                                 
                         this.rowIndex = Number(dataSet.row);
                         this.columnIndex = Number(dataSet.col);
@@ -511,6 +573,8 @@
             --vault-height: 0px;
             --sheet-scroller-size: 10px;
 
+            transform: rotate(0deg); // this is import for fixed positioned element.
+
             position: relative;
             height: 100%;
             width: 100%;       
@@ -542,6 +606,8 @@
             }
 
             .v-sheet{
+                //transform: rotate(0deg); // this is import for fixed positioned element.
+
                 outline: none;
                 position: relative;
                 height: calc(100% - 20px);  

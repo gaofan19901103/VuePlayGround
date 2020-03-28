@@ -1,5 +1,5 @@
 <template>
-   <div class="grid-cell" :data-col="colIndex" :data-row="rowIndex" :data-freeze="freeze" :style="style">{{value}}</div>
+   <div class="grid-cell" :data-col="colIndex" :data-row="rowIndex" v-bind="attributes" :style="style">{{value}}</div>
 </template>
 
 <script>
@@ -9,6 +9,7 @@
            colIndex: { type: [Number, String], required: true },
            value: { type: String, required: false, default: '' },
            freeze: { type: Boolean, required: false, default: false },
+           header: { type: Boolean, required: false, default: false },
            height: {type: Number, required: false, default: 20},
            width: {type: Number, required: false, default: 90},
            span: {type: Number, required: false, default: 1},
@@ -30,11 +31,14 @@
                         position: 'sticky',
                         left: this.x + 'px',
                         'background-color': 'grey',
-                        //'z-index': 100
+                        'z-index': 100
                     });
                 }
 
                 return style;
+            },
+            attributes: function(){
+                return { 'data-freeze': this.freeze, 'data-header': this.header };
             }
         },
         mounted: function(){

@@ -2,11 +2,19 @@ window.Portal = {};
 window.Portal.Utils = {};
 window.Portal.Utils.Tooltip = {};
 
-window.Portal.Utils.getMouseEqurant = function (mouseX, mouseY, targetRect, headerRowCount = 1) {
+window.Portal.Utils.getMouseEqurant = function (mouseX, mouseY, targetRect, offSetX = 0, offSetY = 0) {
     //let uppperEdge = targetRect.top + headerRowCount * 20;
-    let uppperEdge = targetRect.top;
+    //console.log('target ------>',target);
+
+    // if(currentTarget.dataset.row && currentTarget.dataset.row == 0){
+    //     return 5;
+    // }
+
+    // if(currentTarget)
+
+    let uppperEdge = targetRect.top + offSetY;
     let lowerEdge = targetRect.top + targetRect.height;
-    let leftEdge = targetRect.left;
+    let leftEdge = targetRect.left + offSetX;
     let rightEdge = targetRect.left + targetRect.width;
 
     if (mouseX >= leftEdge && mouseX <= rightEdge && mouseY >= uppperEdge && mouseY <= lowerEdge) {
