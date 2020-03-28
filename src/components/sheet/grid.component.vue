@@ -26,9 +26,10 @@
                     :row-index="item.rowIndex"
                     :col-index="col.colIndex"
                     :value="item.cells[col.colIndex].value"
-                    :freeze="item.freeze"
+                    :freeze="col.freeze"
                     :height="item.height"
                     :width="col.width"
+                    :x="item.cells[col.colIndex].x"
                 >
                 </cell>
             </div>

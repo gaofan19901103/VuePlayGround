@@ -1,16 +1,25 @@
 <template>
   <div class="v-sheet-vessel" v-on-resize="onResize">
-    
-    <div class="v-sheet" tabindex="0"
-        @scroll="onScroll($event)" 
-        @contextmenu.prevent="onMenu" 
-        @keydown.prevent="onKeyDown($event)" 
-        @mousedown="onMouseDown($event)">
-        <!-- <xxx :header-rows="headerRows" :columns="indexedCols"></xxx> -->
-        <grid :virtual-list="virtualList" :columns="indexedCols" :grid-top="gridTop"></grid>    
-        <selection-area :selections="selections" :indexed-rows="indexedRows" :indexed-cols="indexedCols"></selection-area>
-        <div class="vault" :style="{ height: rowCount * rowHeight + 'px' }"></div>
+    <div class="v-sheet-container" tabindex="0"  @mousedown="onMouseDown($event)">
+        
+        <div class="v-sheet-header">
+            <xxx :columns="indexedCols" :indexed-header-rows="indexedHeaderRows" :width="sheetWidth" :selections="selections"></xxx>
+        </div>
+ 
+        <div class="v-sheet" tabindex="0"
+            @scroll="onScroll($event)" 
+            @contextmenu.prevent="onMenu" 
+            @keydown.prevent="onKeyDown($event)" 
+           >
+            <grid :virtual-list="virtualList" :columns="indexedCols" :grid-top="gridTop"></grid>    
+            <selection-area :selections="selections" :indexed-rows="indexedAll" :indexed-cols="indexedCols"></selection-area>
+            <div class="vault" :style="{ height: (rowCount - indexedHeaderRows.length) * rowHeight + 'px' }"></div>
+        </div>
+
+
     </div>
+
+
 
   </div>
 </template>
@@ -20,7 +29,7 @@
     import Grid from './grid.component.vue';
     import GridHeader from './grid-header.component.vue';
     import SelectionArea from './selection-area.component.vue';
-    import {convertColumns, convertRows, getHeaderRows} from '../../services/sheet-data.service.js';
+    import {convertColumns, convertRows } from '../../services/sheet-data.service.js';
 
     export default {
         components:{
@@ -32,17 +41,28 @@
             let convertedCols = convertColumns(this.meta);
             let convertedRows = convertRows(this.meta, convertedCols);
 
-            this.headerRows = getHeaderRows(convertedCols);
+            let headerIndex = convertedRows.findIndex(x => !x.isHeader);
+
+
             this.indexedCols = convertedCols;
-            this.indexedRows = convertedRows;
+            this.indexedAll = convertedRows;
+            this.indexedHeaderRows = convertedRows.slice(0, headerIndex);
+            this.indexedRows = convertedRows.slice(headerIndex, convertedRows.length);
+
+            this.colCount = convertedCols.length;
+            this.rowCount = convertedRows.length;
         },
         mounted: function(){
             this.sheetEl = this.$el.querySelector('.v-sheet');
+            this.sheetHeaderEl = this.$el.querySelector('.v-sheet-header');
             this.sheetHeight = this.$el.clientHeight;
             this.gridRect = this.$el.querySelector('.v-sheet').getBoundingClientRect(); 
 
-            this.rowCount = Object.keys(this.meta.Rows).length;
-            this.colCount = this.meta.Columns.length;                  
+            // this.rowCount = Object.keys(this.meta.Rows).length;
+            // this.colCount = this.meta.Columns.length;       
+            
+            
+            this.sheetWidth = this.indexedRows[0].cells[this.colCount - 1].x + this.indexedCols[this.colCount - 1].width;
         },
         props:{
             template: {type: Object, required: true },
@@ -52,16 +72,20 @@
         },
         data:function(){
             return{
+                sheetWidth: 0,
+
                 //meta data
                 // indexedRows: Object.keys(this.meta.Rows).map((x,y) => Object.assign(this.meta.Rows[x], {rowIndex: y })),
                 // indexedCols: this.meta.Columns.map((x,y) => Object.assign(x, {colIndex: y })),
-                headerRows: [],
+                indexedAll: [],
+                indexedHeaderRows: [],
                 indexedRows: [],
                 indexedCols: [],
                 //matrix: this.meta.map(x => Object.keys(x).map(y => x[y])),
 
                 //sheet meta
                 sheetEl: null,
+                sheetHeaderEl: null,
                 sheetHeight: 0,
                 gridRect: null,
                 colCount: 0,
@@ -79,6 +103,7 @@
                 onDragScroll: null,
                 scrollSpeed: 20,
                 currentEqurant: 0,
+                lastCell: null,
 
                 //cell selections
                 selections:[{start:{row: 0, col: 0}, end:{row: 0, col: 0}}],
@@ -117,6 +142,7 @@
         },
         methods:{
            onScroll: function(e){
+               this.sheetHeaderEl.scrollLeft = this.sheetEl.scrollLeft;
               console.log('isDragingScroll -->', this.isRAFLooping);
               if(this.isRAFLooping) return;
               if(Math.abs(e.target.scrollTop -  this.lastVirtualPosition) > this.virtualBuffer * this.rowHeight){
@@ -392,6 +418,11 @@
                 if(this.currentEqurant == 5){
                     console.log('cancel ----------------- interval');
                     
+                    if(this.lastCell && this.lastCell.dataset.freeze && !e.target.dataset.freeze){
+                        this.sheetEl.scrollTo(0, this.sheetEl.scrollTop);
+                    }
+                    this.lastCell = e.target;
+
                     cancelAnimationFrame(this.rafRef);
                     this.rafRef = null;
                     this.isRAFLooping = false;
@@ -471,7 +502,9 @@
             box-sizing: border-box;
         }
         
-        .v-sheet{        
+
+
+        .v-sheet-container{        
             --sheet-font-color: black;
             --sheet-font-size: 12px;
             --sheet-background-color: transparent;
@@ -479,23 +512,66 @@
 
             position: relative;
             height: 100%;
-            width: 100%;
-            // max-height: 100%;       
-            // max-width: 100%;
-            overflow: auto;
+            width: 100%;       
             outline: none;
             
             font-size: var(--sheet-font-size);
             background-color: var(--sheet-background-color);
             color: var(--sheet-font-color);
-                      
-            .vault{
-                position: absolute;
-                top: 0;
-                left: 0;
-                width: 1px;
-                height: var(--vault-height);            
-            }       
+
+            .v-sheet-header{
+                background-color: aquamarine;
+                width: calc(100% - 10px);
+                height: 20px;
+                overflow: auto;
+
+                &::-webkit-scrollbar {
+                    height: 0px;
+                }
+                
+                // &::-webkit-scrollbar-track {
+                //     -webkit-box-shadow: inset 0 0 6px rgba(0,0,0,0.3); 
+                //     border-radius: 1px;
+                // }
+                
+                // &::-webkit-scrollbar-thumb {
+                //     border-radius: 1px;
+                //     -webkit-box-shadow: inset 0 0 6px rgba(0,0,0,0.5); 
+                // }
+            }
+
+            .v-sheet{
+                outline: none;
+                position: relative;
+                height: calc(100% - 20px);
+                width: 100%;
+                overflow: auto;
+
+                .vault{
+                    position: absolute;
+                    top: 0;
+                    left: 0;
+                    width: 1px;
+                    height: var(--vault-height);            
+                }  
+            }
+                
+                              
+                .v-sheet::-webkit-scrollbar {
+                    width: 10px;
+                    height: 10px;
+                }
+
+                
+                .v-sheet::-webkit-scrollbar-track {
+                    -webkit-box-shadow: inset 0 0 6px rgba(0,0,0,0.3); 
+                    border-radius: 10px;
+                }
+                
+                .v-sheet::-webkit-scrollbar-thumb {
+                    border-radius: 10px;
+                    -webkit-box-shadow: inset 0 0 6px rgba(0,0,0,0.5); 
+                }
         }
     }
 </style>

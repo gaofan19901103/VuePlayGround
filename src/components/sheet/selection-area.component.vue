@@ -1,6 +1,7 @@
 <template>
     <div class="selection-area-root" v-if="selections.length">
         <!-- <div class="selection-area" v-if="onlyHeaderArea"></div> -->
+
         <div class="selection-area" v-for="area in selectionAreas" v-bind:key="area.key" :style="{ top: area.top + 'px', left: area.left + 'px', height: area.height + 'px', width: area.width + 'px' }"></div>
     </div>
 </template>
@@ -27,7 +28,7 @@
                     //     key: index,
                     //     top: tlY * this.$parent.rowHeight,
                     //     left: tlX * this.$parent.columnWidth,
-                    //     height: (brY - tlY + 1) * this.$parent.rowHeight,
+                   //     height: (brY - tlY + 1) * this.$parent.rowHeight,
                     //     width: (brX - tlX + 1) * this.$parent.columnWidth
                     // });
 
@@ -42,6 +43,9 @@
 
                 return areas;
             },
+            hasFreezeColumn: function(){
+                this.indexedCols.some(x => x.freeze);
+            },
             // onlyHeaderArea:function(){
             //     return this.selections.some(x => x.start.row == 0 && x.end.row == 0);
             // }
@@ -55,7 +59,7 @@
 <style lang="less">
 .selection-area-root{
     position: absolute;
-    top: 0;
+    top: -20px;
     left: 0;
 
     .selection-area{

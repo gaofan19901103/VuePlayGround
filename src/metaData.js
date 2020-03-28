@@ -14897,3 +14897,73 @@ export var FraMeta = {
     "Visibility": "Must"
   
   };
+
+export var MetaHeader = {
+  "_t": "Row",
+  "Label": "Header",
+  "Highlight": "Header",
+  "Values": {
+    "COL_Cv_Tnr": {
+      "Val": "Tenor"
+    },
+    "COL_Cv_Rst": {
+      "Val": "Reset"
+    },
+    "COL_Cv_Val": {
+      "Val": "Value"
+    },
+    "COL_Cv_Mat": {
+      "Val": "Maturity"
+    },
+    "COL_Cv_Yld": {
+      "Val": "Yield"
+    },
+    "COL_Cv_YrCv": {
+      "Val": "My Yield"
+    },
+    "COL_Cv_YldDiff": {
+      "Val": "Difference"
+    },
+    "COL_Cv_Sep_PF230797": {},
+    "COL_Cv_Pos_PF230797": {
+      "Val": "My Pos (M)"
+    },
+    "COL_Cv_Splt_PF230797": {
+      "Val": "Split"
+    },
+    "COL_Cv_FMin_PF230797": {
+      "Val": "Flexi -"
+    },
+    "COL_Cv_FPls_PF230797": {
+      "Val": "Flexi +"
+    },
+    "COL_Cv_Sep_PF230800": {},
+    "COL_Cv_Pos_PF230800": {
+      "Val": "My Pos (M)"
+    },
+    "COL_Cv_Splt_PF230800": {
+      "Val": "Split"
+    },
+    "COL_Cv_FMin_PF230800": {
+      "Val": "Flexi -"
+    },
+    "COL_Cv_FPls_PF230800": {
+      "Val": "Flexi +"
+    },
+    "COL_Cv_Sep_PF231042": {},
+    "COL_Cv_Pos_PF231042": {
+      "Val": "My Pos (M)"
+    },
+    "COL_Cv_Splt_PF231042": {
+      "Val": "Split"
+    },
+    "COL_Cv_FMin_PF231042": {
+      "Val": "Flexi -"
+    },
+    "COL_Cv_FPls_PF231042": {
+      "Val": "Flexi +"
+    }    
+  },
+  "rowId": "header_1",
+  "IsHeader": true
+};

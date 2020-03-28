@@ -15,14 +15,26 @@
            errorMessages: {type: Array, required: false, default: () => []}, 
            warningMessages: {type: Array, required: false, default: () => []}, 
            validators: {type: Array, required: false, default: () => []},
-           filters: {type: Array, required: false, default: () => []}
+           filters: {type: Array, required: false, default: () => []},
+           x: {type: Number, required: false, default: 0}
         },
         computed:{
             style: function(){
-                return {
+                let style = {
                     width: this.width + 'px',
                     height: this.height + 'px'
                 };
+
+                if(this.freeze){
+                    style = Object.assign(style, {
+                        position: 'sticky',
+                        left: this.x + 'px',
+                        'background-color': 'grey',
+                        //'z-index': 100
+                    });
+                }
+
+                return style;
             }
         },
         mounted: function(){
@@ -37,6 +49,15 @@
 <style lang="less">
 
     .v-grid{
+        .grid-cell{ 
+            text-align: center;
+            line-height: var(--row-height);
+            border-top: 0.25px solid var(--grid-border-color);
+            border-left: 0.25px solid var(--grid-border-color);            
+        }
+    }
+
+    .v-grid-header{
         .grid-cell{ 
             text-align: center;
             line-height: var(--row-height);

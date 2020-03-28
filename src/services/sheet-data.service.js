@@ -16,6 +16,8 @@
 //     return colMap;
 // }
 
+import { MetaHeader } from '../metaData.js'
+
 export function convertColumns(FraMeta){
     let columnArray = [];
 
@@ -28,7 +30,7 @@ export function convertColumns(FraMeta){
             colTitle: item.Title,
             width: item.Width || 90, // getting the width from CSS, css variable
             span: 1,
-            freeze: false
+            freeze: index < 3
         });
     });
 
@@ -68,16 +70,23 @@ export function convertColumns(FraMeta){
 // }
 
 export function convertRows(FraMeta, convertColumns){
+    let headerRow = getHeaderRows(convertColumns);
+
     let metaRows = JSON.parse(JSON.stringify(FraMeta.Rows));
     let metaRowArray = Object.keys(metaRows).map(x => {return { ...metaRows[x], ...{rowId: x} }});
 
+    metaRowArray.unshift(MetaHeader);
+
     let result = [];
+    //result = result.concat(headerRow);
 
     metaRowArray.forEach((row, rowIndex) =>{
+
         let item = {
             rowIndex: rowIndex,
             rowId: row.rowId,
             freeze: false,
+            isHeader: !!row.IsHeader,
             height: row.Height || 20,
             cells: {}
         };
@@ -88,7 +97,7 @@ export function convertRows(FraMeta, convertColumns){
             cell.rowId = row.rowId;
             cell.colId = col.colId;
             cell.x = colIndex == 0 ? 0 : item.cells[colIndex - 1].x  + convertColumns[colIndex - 1].width;
-            cell.y = rowIndex == 0 ? 0 : result[rowIndex - 1].cells[colIndex].y + (metaRowArray[rowIndex - 1].Height || 20);
+            cell.y = rowIndex == 0 ? 0 : result[rowIndex - 1].cells[colIndex].y + (metaRowArray[rowIndex - 1].Height || 20); // now the row height is always fixed, and this is simple, to make it dynamic I need to change the logic correspondingly in sheet.component.vue.
             cell.value = (row.Values[col.colId] && row.Values[col.colId].Val) || '';
 
             item.cells[colIndex] = cell;
@@ -109,10 +118,13 @@ export function getHeaderRows(convertColumns){
     };
 
     convertColumns.forEach((item, colIndex) => {
-        headerRow.cells[item.colId] = {};
-        headerRow.cells[item.colId].x = colIndex * item.width;
-        headerRow.cells[item.colId].y = 0;
-        headerRow.cells[item.colId].value = item.colTitle;
+        let cell = {};
+
+        cell.x = colIndex == 0 ? 0 : headerRow.cells[colIndex - 1].x  + convertColumns[colIndex - 1].width;
+        cell.y = 0; // to be changed
+        cell.value = item.colTitle;
+
+        headerRow.cells[colIndex] = cell;
     });
 
     return [headerRow];
