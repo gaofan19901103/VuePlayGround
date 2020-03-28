@@ -509,6 +509,7 @@
             --sheet-font-size: 12px;
             --sheet-background-color: transparent;
             --vault-height: 0px;
+            --sheet-scroller-size: 10px;
 
             position: relative;
             height: 100%;
@@ -521,7 +522,7 @@
 
             .v-sheet-header{
                 background-color: aquamarine;
-                width: calc(100% - 10px);
+                width: calc(100% - var(--sheet-scroller-size)); // don't always minus this 10px, if there is no scroller no need, but I havn't checked it yet.
                 height: 20px;
                 overflow: auto;
 
@@ -543,7 +544,7 @@
             .v-sheet{
                 outline: none;
                 position: relative;
-                height: calc(100% - 20px);
+                height: calc(100% - 20px);  
                 width: 100%;
                 overflow: auto;
 
@@ -558,8 +559,8 @@
                 
                               
                 .v-sheet::-webkit-scrollbar {
-                    width: 10px;
-                    height: 10px;
+                    width: var(--sheet-scroller-size);
+                    height: var(--sheet-scroller-size);
                 }
 
                 
