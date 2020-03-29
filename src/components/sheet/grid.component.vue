@@ -73,8 +73,8 @@
             --row-height: 20px;
             --grid-border-color: #cedbe6;
 
-            position: absolute;
-            left: 0;
+             position: relative;
+            // left: 0;
 
             *{
                 box-sizing: border-box;

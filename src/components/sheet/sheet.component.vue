@@ -5,17 +5,22 @@
         <div class="v-sheet-header">
             <grid-header :columns="indexedCols" :indexed-header-rows="indexedHeaderRows" :width="sheetWidth" :selections="selections"></grid-header>
         </div>
- 
-        <div class="v-sheet" tabindex="0"
-            @scroll="onScroll($event)" 
-            @contextmenu.prevent="onMenu" 
-            @keydown.prevent="onKeyDown($event)" 
-           >
-            <grid :virtual-list="virtualList" :columns="indexedCols" :grid-top="gridTop"></grid>    
-            <selection-area :selections="selections" :indexed-rows="indexedAll" :indexed-cols="indexedCols"></selection-area>
-            <div class="vault" :style="{ height: (rowCount - indexedHeaderRows.length) * rowHeight + 'px' }"></div>
-        </div>
 
+        <!-- <div class="v-sheet-body">
+            <div>
+                <grid :virtual-list="virtualList" :columns="indexedFreezeCols" :grid-top="gridTop"></grid> 
+            </div> -->
+
+            <div class="v-sheet" tabindex="0"
+                @scroll="onScroll($event)" 
+                @contextmenu.prevent="onMenu" 
+                @keydown.prevent="onKeyDown($event)" >
+                <freeze-grid :virtual-list="virtualList" :columns="indexedFreezeCols" :grid-top="gridTop" :indexed-cols="indexedCols" :indexed-rows="indexedAll" :selections="selections"></freeze-grid>  
+                <grid :virtual-list="virtualList" :columns="indexedNormalCols" :grid-top="gridTop"></grid>    
+                <selection-area :selections="selections" :indexed-rows="indexedAll" :indexed-cols="indexedCols"></selection-area>
+                <div class="vault" :style="{ height: (rowCount - indexedHeaderRows.length) * rowHeight + 'px' }"></div>
+            </div>
+        <!-- </div> -->
 
         <!-- <freeze-selection-area :selections="selections" :indexed-rows="indexedAll" :indexed-cols="indexedCols"></freeze-selection-area> -->
     </div>
@@ -30,13 +35,15 @@
     import Grid from './grid.component.vue';
     import GridHeader from './grid-header.component.vue';
     import SelectionArea from './selection-area.component.vue';
+    import FreezeGrid from './grid-freeze.component.vue';
     import {convertColumns, convertRows } from '../../services/sheet-data.service.js';
 
     export default {
         components:{
             grid: Grid,
             selectionArea: SelectionArea,
-            gridHeader: GridHeader
+            gridHeader: GridHeader,
+            freezeGrid: FreezeGrid
         },
         created: function(){
             let convertedCols = convertColumns(this.meta);
@@ -49,6 +56,10 @@
             this.indexedAll = convertedRows;
             this.indexedHeaderRows = convertedRows.slice(0, headerIndex);
             this.indexedRows = convertedRows.slice(headerIndex, convertedRows.length);
+
+            let lastFreezeColIndex = convertedCols.findIndex(x => !x.freeze);
+            this.indexedFreezeCols = convertedCols.slice(0, lastFreezeColIndex);
+            this.indexedNormalCols = convertedCols.slice(lastFreezeColIndex, convertedCols.length);
 
             this.colCount = convertedCols.length;
             this.rowCount = convertedRows.length;
@@ -82,6 +93,8 @@
                 indexedHeaderRows: [],
                 indexedRows: [],
                 indexedCols: [],
+                indexedFreezeCols: [],
+                indexedNormalCols: [],
                 //matrix: this.meta.map(x => Object.keys(x).map(y => x[y])),
 
                 //sheet meta
@@ -437,7 +450,7 @@
                 if(this.startCell && this.startCell.dataset.header && !currentCell.dataset.header){
                     this.sheetEl.scrollTo(this.sheetEl.scrollLeft, 0);
                 }
-                else if(this.startCell && this.startCell.dataset.freeze && !currentCell.dataset.freeze){
+                else if(this.startCell && this.startCell.dataset.freeze && !currentCell.dataset.freeze && !this.isRAFLooping){
                     this.sheetEl.scrollTo(0, this.sheetEl.scrollTop);
                 }
                 
@@ -469,6 +482,9 @@
                 // }
  
                 if(this.startCell && this.startCell.dataset.header && currentCell.dataset.header){
+                    this.currentEqurant = 5;
+                }
+                else if(this.startCell && !this.startCell.dataset.header && currentCell.dataset.header && this.sheetEl.scrollTop == 0){
                     this.currentEqurant = 5;
                 }
                 else if(this.startCell && !this.startCell.dataset.freeze && currentCell.dataset.freeze && this.sheetEl.scrollLeft > 0){
@@ -587,7 +603,7 @@
             .v-sheet-header{
                 background-color: aquamarine;
                 width: calc(100% - var(--sheet-scroller-size)); // don't always minus this 10px, if there is no scroller no need, but I havn't checked it yet.
-                height: 20px;
+                height: 20px;  // GF:Review: should be dynamic, variable.
                 overflow: auto;
 
                 &::-webkit-scrollbar {
@@ -606,11 +622,12 @@
             }
 
             .v-sheet{
-                //transform: rotate(0deg); // this is import for fixed positioned element.
+                    //transform: rotate(0deg); // this is import for fixed positioned element.
 
+                display: flex;
                 outline: none;
                 position: relative;
-                height: calc(100% - 20px);  
+                height: calc(100% - 20px); 
                 width: 100%;
                 overflow: auto;
 
@@ -620,25 +637,63 @@
                     left: 0;
                     width: 1px;
                     height: var(--vault-height);            
-                }  
-            }
+                } 
                 
-                              
-                .v-sheet::-webkit-scrollbar {
+                &::-webkit-scrollbar {
                     width: var(--sheet-scroller-size);
                     height: var(--sheet-scroller-size);
                 }
 
-                
-                .v-sheet::-webkit-scrollbar-track {
+            
+                &::-webkit-scrollbar-track {
                     -webkit-box-shadow: inset 0 0 6px rgba(0,0,0,0.3); 
                     border-radius: 10px;
                 }
                 
-                .v-sheet::-webkit-scrollbar-thumb {
+                &::-webkit-scrollbar-thumb {
                     border-radius: 10px;
                     -webkit-box-shadow: inset 0 0 6px rgba(0,0,0,0.5); 
                 }
+            }
+
+            // .v-sheet-body{
+            //     display: flex;
+            //     height: calc(100% - 20px); // GF:Review: 20 should be header height variable.
+
+            //     .v-sheet{
+            //         //transform: rotate(0deg); // this is import for fixed positioned element.
+
+            //         outline: none;
+            //         position: relative;
+            //         height: 100%; 
+            //         width: 100%;
+            //         overflow: auto;
+
+            //         .vault{
+            //             position: absolute;
+            //             top: 0;
+            //             left: 0;
+            //             width: 1px;
+            //             height: var(--vault-height);            
+            //         } 
+                    
+            //         &::-webkit-scrollbar {
+            //             width: var(--sheet-scroller-size);
+            //             height: var(--sheet-scroller-size);
+            //         }
+
+                
+            //         &::-webkit-scrollbar-track {
+            //             -webkit-box-shadow: inset 0 0 6px rgba(0,0,0,0.3); 
+            //             border-radius: 10px;
+            //         }
+                    
+            //         &::-webkit-scrollbar-thumb {
+            //             border-radius: 10px;
+            //             -webkit-box-shadow: inset 0 0 6px rgba(0,0,0,0.5); 
+            //         }
+            //     }                                                
+            // }       
         }
     }
 </style>

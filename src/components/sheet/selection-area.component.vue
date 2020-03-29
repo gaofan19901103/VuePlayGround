@@ -2,8 +2,8 @@
     <div class="selection-area-root" v-if="selections.length">
         <!-- <div class="selection-area" v-if="onlyHeaderArea"></div> -->
         <!-- <div class="selection-area-root-freeze">                                                                                                           Review: This should be rowHieght * countOfHeaderRow -->
-            <div :class="{'selection-area': true, 'for-freeze': true, 'no-right-border': area.noRightBorder}" v-for="area in freezeAreas" :key="area.key" :style="{ top: area.top  + 'px', left: area.left + 'px', height: area.height + 'px', width: area.width + 'px', position: 'fixed' }">
-            </div>
+            <!-- <div :class="{'selection-area': true, 'for-freeze': true, 'no-right-border': area.noRightBorder}" v-for="area in freezeAreas" :key="area.key" :style="{ top: area.top  + 'px', left: area.left + 'px', height: area.height + 'px', width: area.width + 'px', position: 'fixed' }">
+            </div> -->
         <!-- </div> -->
         
         <div class="selection-area" v-for="area in selectionAreas" v-bind:key="area.key" :style="{ top: area.top + 'px', left: area.left + 'px', height: area.height + 'px', width: area.width + 'px' }"></div>
@@ -54,20 +54,20 @@
                     });
 
 
-                    let showFreezeArea = tlX < this.countOfFreeze;
-                    if(showFreezeArea){
-                        let brX_Freeze =  brX >= this.countOfFreeze ? this.countOfFreeze -1 : brX;
+                    // let showFreezeArea = tlX < this.countOfFreeze;
+                    // if(showFreezeArea){
+                    //     let brX_Freeze =  brX >= this.countOfFreeze ? this.countOfFreeze -1 : brX;
 
-                        this.freezeAreas.push({
-                            key: 'freeze' + index,
-                            top: this.indexedRows[tlY].cells[tlX].y,
-                            left: this.indexedRows[tlY].cells[tlX].x,
-                            height: this.indexedRows[brY].cells[brX_Freeze].y - this.indexedRows[tlY].cells[tlX].y + this.indexedRows[brY].height,
-                            width: this.indexedRows[brY].cells[brX_Freeze].x - this.indexedRows[tlY].cells[tlX].x + this.indexedCols[brX_Freeze].width,
-                            noRightBorder: brX > this.countOfFreeze - 1,
-                            show: showFreezeArea
-                        });
-                    }
+                    //     this.freezeAreas.push({
+                    //         key: 'freeze' + index,
+                    //         top: this.indexedRows[tlY].cells[tlX].y,
+                    //         left: this.indexedRows[tlY].cells[tlX].x,
+                    //         height: this.indexedRows[brY].cells[brX_Freeze].y - this.indexedRows[tlY].cells[tlX].y + this.indexedRows[brY].height,
+                    //         width: this.indexedRows[brY].cells[brX_Freeze].x - this.indexedRows[tlY].cells[tlX].x + this.indexedCols[brX_Freeze].width,
+                    //         noRightBorder: brX > this.countOfFreeze - 1,
+                    //         show: showFreezeArea
+                    //     });
+                    // }
                 });
 
                 return areas;
@@ -87,7 +87,8 @@
 
 <style lang="less">
 .selection-area-root{
-    position: relative;
+    //position: relative;
+    position: absolute;
     top: -20px;  // this should be the rowHeight * countOfHeaderRow
     left: 0;
     width: 0px;

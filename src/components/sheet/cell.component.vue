@@ -26,7 +26,7 @@
                     height: this.height + 'px'
                 };
 
-                if(this.freeze){
+                if(this.freeze && this.header){
                     style = Object.assign(style, {
                         position: 'sticky',
                         left: this.x + 'px',

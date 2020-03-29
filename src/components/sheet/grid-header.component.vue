@@ -17,7 +17,7 @@
             </cell>
         </div>
         <div class="selection-area-root" v-if="selections.length">
-            <div :class="{'selection-area': true, 'no-border-bottom': area.noBottomBorder }" v-for="area in selectionAreas" v-bind:key="area.key" :v-if="area.show" :style="{ top: area.top + 'px', left: area.left + 'px', height: area.height + 'px', width: area.width + 'px' }"></div>
+            <div :class="{'selection-area': true, 'no-border-bottom': area.noBottomBorder }" v-for="area in selectionAreas" v-bind:key="area.key" :v-if="area.show" :style="[{ top: area.top + 'px', left: area.left + 'px', height: area.height + 'px', width: area.width + 'px' }, area.style]"></div>
         </div>
     </div>
 </template>
@@ -39,7 +39,8 @@
         },
         data:function(){
             return{
-                isHeader: true
+                isHeader: true,
+                firstNormalColIndex: this.columns.findIndex(x => !x.freeze)
                 // noBottomBorder: false,
                 // showHeaderSelectionArea: false
             };
@@ -71,7 +72,30 @@
                             height: this.indexedHeaderRows[brY].cells[brX].y - this.indexedHeaderRows[tlY].cells[tlX].y + this.indexedHeaderRows[brY].height,
                             width: this.indexedHeaderRows[brY].cells[brX].x - this.indexedHeaderRows[tlY].cells[tlX].x + this.columns[brX].width,
                             noBottomBorder: show,
-                            show: showHeaderSelectionArea
+                            show: showHeaderSelectionArea,
+                            style: {}
+                        });
+                    }
+
+                    let showHeaderSelectionAreaFreeze = showHeaderSelectionArea && tlX < this.firstNormalColIndex;
+
+                    if(showHeaderSelectionAreaFreeze){
+                        let noBottomBorder = brY > (this.indexedHeaderRows.length -1);
+                        brX = brX >= this.firstNormalColIndex - 1 ? this.firstNormalColIndex - 1 : brX;
+
+                        areas.push({
+                            key: 'gridheaderfreeze' + index,
+                            top: this.indexedHeaderRows[tlY].cells[tlX].y,
+                            left: this.indexedHeaderRows[tlY].cells[tlX].x,
+                            height: this.indexedHeaderRows[brY].cells[brX].y - this.indexedHeaderRows[tlY].cells[tlX].y + this.indexedHeaderRows[brY].height,
+                            width: this.indexedHeaderRows[brY].cells[brX].x - this.indexedHeaderRows[tlY].cells[tlX].x + this.columns[brX].width,
+                            noBottomBorder: noBottomBorder,
+                            show: showHeaderSelectionArea,
+                            style: {
+                                'z-index': 1000,
+                                position: 'fixed',
+                                left: this.indexedHeaderRows[tlY].cells[tlX].x
+                            }
                         });
                     }
                 });
@@ -115,6 +139,7 @@
                 position: absolute;
                 top: 0;
                 left: 0;
+               // z-index: 100;
 
                 .selection-area{
                     --selection-area-color: rgba(255,99,88,0.25);
