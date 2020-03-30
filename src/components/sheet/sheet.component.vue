@@ -1,6 +1,6 @@
 <template>
   <div class="v-sheet-vessel" v-on-resize="onResize">
-    <div class="v-sheet-container" tabindex="0"  @mousedown="onMouseDown($event)">
+    <div class="v-sheet-container" tabindex="0"  @mousedown="onMouseDown($event)"  @keydown="onKeyDown($event)" @dblclick="onDblClick">
         
         <div class="v-sheet-header">
             <grid-header :columns="indexedCols" :indexed-header-rows="indexedHeaderRows" :width="sheetWidth" :selections="selections"></grid-header>
@@ -14,11 +14,12 @@
             <div class="v-sheet" tabindex="0"
                 @scroll="onScroll($event)" 
                 @contextmenu.prevent="onMenu" 
-                @keydown.prevent="onKeyDown($event)" >
+ >
                 <freeze-grid :virtual-list="virtualList" :columns="indexedFreezeCols" :grid-top="gridTop" :indexed-cols="indexedCols" :indexed-rows="indexedAll" :selections="selections"></freeze-grid>  
                 <grid :virtual-list="virtualList" :columns="indexedNormalCols" :grid-top="gridTop"></grid>    
                 <selection-area :selections="selections" :indexed-rows="indexedAll" :indexed-cols="indexedCols"></selection-area>
                 <div class="vault" :style="{ height: (rowCount - indexedHeaderRows.length) * rowHeight + 'px' }"></div>
+                <cell-editor v-if="showCellEditor" :combo="cellEditCombo"></cell-editor>
             </div>
         <!-- </div> -->
 
@@ -36,6 +37,7 @@
     import GridHeader from './grid-header.component.vue';
     import SelectionArea from './selection-area.component.vue';
     import FreezeGrid from './grid-freeze.component.vue';
+    import CellEditor from './cell-editor.component.vue';
     import {convertColumns, convertRows } from '../../services/sheet-data.service.js';
 
     export default {
@@ -43,9 +45,11 @@
             grid: Grid,
             selectionArea: SelectionArea,
             gridHeader: GridHeader,
-            freezeGrid: FreezeGrid
+            freezeGrid: FreezeGrid,
+            cellEditor: CellEditor
         },
         created: function(){
+            // GF:Review: this method shouldn't be in this life cycle method, they need to be reactive to changes. reactive to metaData change.
             let convertedCols = convertColumns(this.meta);
             let convertedRows = convertRows(this.meta, convertedCols);
 
@@ -128,6 +132,10 @@
 
                 render: null,
                 rafRef: null,
+
+                //editing
+                showCellEditor: false,
+                cellEditCombo: null
             }   
         },
         computed:{         
@@ -158,6 +166,7 @@
         },
         methods:{
            onScroll: function(e){
+              this.showCellEditor = false;
               this.sheetHeaderEl.scrollLeft = this.sheetEl.scrollLeft;
 
               console.log('isDragingScroll -->', this.isRAFLooping);
@@ -180,14 +189,15 @@
                 let brX = Math.max(Number(this.selections[this.currentSelectionIndex].start.col), Number(this.selections[this.currentSelectionIndex].end.col));
                 let brY = Math.max(Number(this.selections[this.currentSelectionIndex].start.row), Number(this.selections[this.currentSelectionIndex].end.row));
 
-                // let twoD = this.matrix.slice(tlY, brY + 1);
-                // twoD = twoD.map(x => x.slice(tlX, brX + 1));
-                // this.selectionMatrix = twoD;
-                // let content = this.buildString(twoD);
-                // Portal.Utils.copyToClipboard(content);
+                let valueMatrix = this.indexedAll.map(x => Object.keys(x.cells).map(y => x.cells[y].value));
 
-                // let timerAfter = performance.now();
-                // console.info(`copy used ${Math.ceil(timerAfter - timerBefore)} milliseconds`);
+                let twoD = valueMatrix.slice(tlY, brY + 1);
+                twoD = twoD.map(x => x.slice(tlX, brX + 1));;
+                let content = this.buildString(twoD);
+                Portal.Utils.copyToClipboard(content);
+
+                let timerAfter = performance.now();
+                console.info(`copy used ${Math.ceil(timerAfter - timerBefore)} milliseconds`);
            },   
            moveSelection: function(rowIncrement, colIncrement, scroll = true, check = false){
                 this.selections[this.currentSelectionIndex].end.row = this.selections[this.currentSelectionIndex].end.row + rowIncrement;
@@ -285,19 +295,32 @@
                this.render();
            },
            isCellInView: function(row, column){
-                let cellEL = this.sheetEl.querySelector(`[data-row="${row}"][data-col="${column}"]`);
+                let nextCell = this.sheetEl.querySelector(`[data-row="${row}"][data-col="${column}"]`);
 
-                if(!cellEL){
+                if(this.startCell && this.startCell.dataset.header && (!nextCell || !nextCell.dataset.header) && !this.isRAFLooping){
+                    this.sheetEl.scrollTo(this.sheetEl.scrollLeft, 0);
+                    //GF:Review: later it scrolled by 20 again, need to prevent that... find a good way.
+                }
+                else if(this.startCell && this.startCell.dataset.freeze && !nextCell.dataset.freeze && !this.isRAFLooping){
+                    this.sheetEl.scrollTo(0, this.sheetEl.scrollTop);
+                }
+                
+                if(!nextCell){
                     console.log('no such cell');
                     return false;
                 } 
 
-                let cellRect = cellEL && cellEL.getBoundingClientRect();
+                let cellRect = nextCell && nextCell.getBoundingClientRect();
+
+                // let isOut = this.gridRect.top > cellRect.top ||
+                //             this.gridRect.top + this.gridRect.height < cellRect.top + cellRect.height ||
+                //             this.gridRect.left > cellRect.left || 
+                //             this.gridRect.left + this.gridRect.width < cellRect.left + cellRect.width;
 
                 let isOut = this.gridRect.top > cellRect.top ||
-                            this.gridRect.top + this.gridRect.height < cellRect.top + cellRect.height ||
-                            this.gridRect.left > cellRect.left || 
-                            this.gridRect.left + this.gridRect.width < cellRect.left + cellRect.width;
+                this.gridRect.top + this.gridRect.height < cellRect.top + cellRect.height ||
+                (this.gridRect.left + this.indexedFreezeCols[this.indexedFreezeCols.length - 1].x) > cellRect.left ||  //GF:Review: this is to offset the freeze.
+                this.gridRect.left + this.gridRect.width < cellRect.left + cellRect.width;
 
                 return !isOut;
            },
@@ -325,10 +348,14 @@
                 } 
 
                 if (event.ctrlKey  &&  event.key === "c") { 
+                    event.preventDefault();
+
                     this.copyCurrentSelection(); 
                 }
 
                 if (event.ctrlKey  &&  event.key === "a") { 
+                    event.preventDefault();
+
                     this.currentSelectionIndex = 0;
                     this.selections.splice(1);
                     this.selections[0].start.row = 0;
@@ -337,7 +364,10 @@
                     this.selections[0].end.col = this.colCount - 1;
                 }
 
-                if (event.key.startsWith('Arrow')) {            
+                if (event.key.startsWith('Arrow')) {   
+                    event.preventDefault();
+                    this.showCellEditor = false;
+
                     if(event.key == 'ArrowUp'){
                         if(event.shiftKey){
                             this.render = () => { this.expandSelection(-1, 0, true, true); };
@@ -412,6 +442,8 @@
                 console.log('mouse down', this.rowIndex, this.columnIndex);                   
 
                 if (e.which == 1) {
+                    this.showCellEditor = false;
+
                     if(e.shiftKey){
                         e.preventDefault();
                         this.selections[this.currentSelectionIndex].end.row = this.rowIndex;
@@ -447,7 +479,7 @@
                // let lastCell = this.lastCell;
                 
                 
-                if(this.startCell && this.startCell.dataset.header && !currentCell.dataset.header){
+                if(this.startCell && this.startCell.dataset.header && !currentCell.dataset.header && !this.isRAFLooping){
                     this.sheetEl.scrollTo(this.sheetEl.scrollLeft, 0);
                 }
                 else if(this.startCell && this.startCell.dataset.freeze && !currentCell.dataset.freeze && !this.isRAFLooping){
@@ -565,6 +597,24 @@
                 this.rafRef = null;
                 document.onmouseup = null;
                 document.onmousemove = null;
+            },
+            onDblClick: function(event){
+                console.log('double click');
+
+                this.showCellEditor = true;
+
+                let row = event.target.dataset.row;
+                let col = event.target.dataset.col;
+
+                this.cellEditCombo = {
+                    value: this.indexedAll[row].cells[col].value,
+                    style:{
+                        top: (this.indexedAll[row].cells[col].y - 20) + 'px',
+                        left: this.indexedAll[row].cells[col].x + 'px',
+                        height: this.rowHeight + 'px',
+                        width: this.indexedCols[col].width + 'px'
+                    }
+                };
             }     
         }
     };

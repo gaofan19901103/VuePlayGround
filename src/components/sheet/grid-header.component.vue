@@ -17,7 +17,7 @@
             </cell>
         </div>
         <div class="selection-area-root" v-if="selections.length">
-            <div :class="{'selection-area': true, 'no-border-bottom': area.noBottomBorder }" v-for="area in selectionAreas" v-bind:key="area.key" :v-if="area.show" :style="[{ top: area.top + 'px', left: area.left + 'px', height: area.height + 'px', width: area.width + 'px' }, area.style]"></div>
+            <div :class="{'selection-area': true, 'no-bottom-border': area.noBottomBorder, 'no-right-border': area.noRightBorder }" v-for="area in selectionAreas" v-bind:key="area.key" :v-if="area.show" :style="[{ top: area.top + 'px', left: area.left + 'px', height: area.height + 'px', width: area.width + 'px' }, area.style]"></div>
         </div>
     </div>
 </template>
@@ -58,9 +58,11 @@
 
                     let showHeaderSelectionArea = tlY < this.indexedHeaderRows.length;
 
+                    let noBottomBorder = brY > (this.indexedHeaderRows.length -1);
+
                     if(showHeaderSelectionArea)
                     {
-                        let show = brY > (this.indexedHeaderRows.length -1);
+                        
                         //this.noBottomBorder = brY > (this.indexedHeaderRows.length -1);
                         brY = brY > (this.indexedHeaderRows.length -1) ? this.indexedHeaderRows.length -1 : brY;
                         
@@ -71,7 +73,7 @@
                             left: this.indexedHeaderRows[tlY].cells[tlX].x,
                             height: this.indexedHeaderRows[brY].cells[brX].y - this.indexedHeaderRows[tlY].cells[tlX].y + this.indexedHeaderRows[brY].height,
                             width: this.indexedHeaderRows[brY].cells[brX].x - this.indexedHeaderRows[tlY].cells[tlX].x + this.columns[brX].width,
-                            noBottomBorder: show,
+                            noBottomBorder: noBottomBorder,
                             show: showHeaderSelectionArea,
                             style: {}
                         });
@@ -80,7 +82,7 @@
                     let showHeaderSelectionAreaFreeze = showHeaderSelectionArea && tlX < this.firstNormalColIndex;
 
                     if(showHeaderSelectionAreaFreeze){
-                        let noBottomBorder = brY > (this.indexedHeaderRows.length -1);
+                        let noRightBorder = brX > (this.firstNormalColIndex -1);
                         brX = brX >= this.firstNormalColIndex - 1 ? this.firstNormalColIndex - 1 : brX;
 
                         areas.push({
@@ -90,6 +92,7 @@
                             height: this.indexedHeaderRows[brY].cells[brX].y - this.indexedHeaderRows[tlY].cells[tlX].y + this.indexedHeaderRows[brY].height,
                             width: this.indexedHeaderRows[brY].cells[brX].x - this.indexedHeaderRows[tlY].cells[tlX].x + this.columns[brX].width,
                             noBottomBorder: noBottomBorder,
+                            noRightBorder: noRightBorder,
                             show: showHeaderSelectionArea,
                             style: {
                                 'z-index': 1000,
@@ -152,8 +155,12 @@
                     background-color: var(--selection-area-color);
                 }
 
-                .selection-area.no-border-bottom{
+                .selection-area.no-bottom-border{
                     border-bottom: none;
+                }
+
+                .selection-area.no-right-border{
+                    border-right: none;
                 }
             }
         }

@@ -24,14 +24,18 @@ export function convertColumns(FraMeta){
     FraMeta.Columns.forEach((item, index ) => {
         if(item.Visibility == 'never') return;
 
-        columnArray.push({
+        let col = {
             colIndex: index,
             colId: item.Col,
             colTitle: item.Title,
             width: item.Width || 90, // getting the width from CSS, css variable
             span: 1,
             freeze: index < 3
-        });
+        };
+
+        col.x = index == 0 ? 0 : columnArray[index - 1].x + col.width;
+
+        columnArray.push(col);
     });
 
     return columnArray;
