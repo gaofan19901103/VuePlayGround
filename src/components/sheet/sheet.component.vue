@@ -19,7 +19,7 @@
                 <grid :virtual-list="virtualList" :columns="indexedNormalCols" :grid-top="gridTop"></grid>    
                 <selection-area :selections="selections" :indexed-rows="indexedAll" :indexed-cols="indexedCols"></selection-area>
                 <div class="vault" :style="{ height: (rowCount - indexedHeaderRows.length) * rowHeight + 'px' }"></div>
-                <cell-editor v-if="showCellEditor" :combo="cellEditCombo"></cell-editor>
+                <cell-editor v-if="showCellEditor" :combo="cellEditCombo" v-on:hide-cell-editor="setValue"></cell-editor>
             </div>
         <!-- </div> -->
 
@@ -139,7 +139,7 @@
             }   
         },
         computed:{         
-            virtualList: function(){ //depends on lastVirtualPostion, sheetHeight, rowHeight, virtualBuffer.
+            virtualList: function(){ //depends on indexedRows, lastVirtualPostion, sheetHeight, rowHeight, virtualBuffer.
                 if(!this.sheetHeight) return[];
                 let visibleRowCount = Math.ceil(this.sheetHeight / this.rowHeight);
                 let scrolledRowCount = Math.floor(this.lastVirtualPosition / this.rowHeight);          
@@ -342,20 +342,18 @@
                // put menu here if needed.
            },
            onKeyDown: function(event){
+                if(!this.showCellEditor)
+                    event.preventDefault();
 
                 if(event.repeat && this.isRAFLooping){
                     return;
                 } 
 
                 if (event.ctrlKey  &&  event.key === "c") { 
-                    event.preventDefault();
-
                     this.copyCurrentSelection(); 
                 }
 
                 if (event.ctrlKey  &&  event.key === "a") { 
-                    event.preventDefault();
-
                     this.currentSelectionIndex = 0;
                     this.selections.splice(1);
                     this.selections[0].start.row = 0;
@@ -364,8 +362,7 @@
                     this.selections[0].end.col = this.colCount - 1;
                 }
 
-                if (event.key.startsWith('Arrow')) {   
-                    event.preventDefault();
+                if (event.key && event.key.startsWith('Arrow')) {   
                     this.showCellEditor = false;
 
                     if(event.key == 'ArrowUp'){
@@ -598,6 +595,13 @@
                 document.onmouseup = null;
                 document.onmousemove = null;
             },
+            hideCellEditor: function(){
+                this.showCellEditor = false;
+            },
+            setValue: function(valueObj){
+                this.indexedAll[valueObj.row].cells[valueObj.col].value = valueObj.newValue;
+                this.$root.$emit('sheet-data-changed', 'input sheet', [valueObj]);
+            },
             onDblClick: function(event){
                 console.log('double click');
 
@@ -607,6 +611,9 @@
                 let col = event.target.dataset.col;
 
                 this.cellEditCombo = {
+                    row: row,
+                    col: col,
+                    cell: this.indexedAll[row].cells[col],
                     value: this.indexedAll[row].cells[col].value,
                     style:{
                         top: (this.indexedAll[row].cells[col].y - 20) + 'px',

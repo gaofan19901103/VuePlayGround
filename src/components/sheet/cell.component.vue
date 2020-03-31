@@ -1,4 +1,5 @@
 <template>
+   <!-- <div class="grid-cell" :data-col="colIndex" :data-row="rowIndex" v-bind="attributes" :style="style" v-tooltip="tooltipValue">{{value}}</div> -->
    <div class="grid-cell" :data-col="colIndex" :data-row="rowIndex" v-bind="attributes" :style="style">{{value}}</div>
 </template>
 
@@ -37,8 +38,21 @@
 
                 return style;
             },
-            attributes: function(){
-                return { 'data-freeze': this.freeze, 'data-header': this.header };
+            attributes: function(){            
+                let attributes = { 'data-freeze': this.freeze, 'data-header': this.header };
+                // if(this.header){
+                //     attributes['v-tooltip'] = "value";
+                // }
+
+                return attributes;
+            },
+            tooltipValue: function(){
+                if(this.header){
+                    return this.value;
+                }
+                else{
+                    return false;
+                }
             }
         },
         mounted: function(){

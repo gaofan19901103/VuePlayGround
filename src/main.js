@@ -1,4 +1,5 @@
 require('./util/portal.js');
+require('./util/tooltip.js');
 
 import Vue from 'vue';
 import App from './components/App.vue';
@@ -10,7 +11,7 @@ import xxx from './components/child.vue';
 import VS from './components/virtual-scroller.vue';
 import sheet from './components/sheet/sheet.component.vue';
 import { FraMeta, FraTemplate } from './metaData.js';
-
+import tooltip from './components/tooltip/tooltip.directive.js';
 
 require('./directives/test-directive.js');
 require('./directives/tooltip.js');
@@ -24,7 +25,7 @@ Vue.component('parent', parent);
 Vue.component('xxx', xxx);
 Vue.component('virtual-scroller', VS);
 Vue.component('sheet', sheet);
-
+Vue.directive('tooltip',tooltip);
 
 var list = [];
 
@@ -51,6 +52,11 @@ window.myVue = new Vue({
       document.querySelector('.v-sheet').focus();
     }
   }
+});
+
+window.myVue.$on('sheet-data-changed', function(id, changes){
+  console.log('receive sheet data change:', id, changes);
+  //async tasks  GF:Review
 });
 
 var testEl = document.getElementById("main-container");

@@ -9,6 +9,11 @@
         props:{
            combo: { type: Object, required: false }
         },
+        data:function(){
+            return{
+                value: null
+            }
+        },
         computed:{
 
         },
@@ -17,6 +22,20 @@
         },
         updated: function(){
 
+        },
+        beforeDestroy:function(){
+            this.value = this.$refs.editor.value;
+        },
+        destroyed:function(){
+            let valueObj = {
+                row: this.combo.row,
+                col: this.combo.col,
+                rowId: this.combo.cell.rowId,
+                colId: this.combo.cell.colId,
+                oldValue: this.combo.value,
+                newValue: this.value
+            };
+            this.$emit('hide-cell-editor', valueObj);
         }
     };
 </script>

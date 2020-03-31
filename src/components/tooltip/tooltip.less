@@ -1,0 +1,84 @@
+//@import (reference) '../../../../../Content/Styles/portal-constants.less';
+
+//tooltip base styles
+.v-tooltip-box {
+    //custom
+    --tooltip-background-default: grey;
+    --tooltip-background-info: rgb(150, 205, 45);
+    --tooltip-background-warning: rgb(215, 115, 0);
+    --tooltip-background-error: rgb(215, 25, 55);
+    //calculation for positioning
+    --arrow-size: 4px;
+    --arrow-left: calc(50% - var(--arrow-size));
+    --arrow-top: calc(50% - var(--arrow-size) / 2);
+    --border-size: 2px;
+
+
+    position: fixed;
+    box-sizing: border-box;
+    top: -10000px;
+    z-index: 1000001;
+    padding: 6px;
+    border: var(--border-size) solid #ffffff;
+    border-radius: 6px;
+    max-width: 200px;
+    text-align: left;
+    font-size: 12px;
+
+    &:after {
+        position: absolute;
+        content: '';
+        width: 0px;
+        height: 0px;
+        border-left: var(--arrow-size) solid transparent;
+        border-right: var(--arrow-size) solid transparent;
+        border-bottom: var(--arrow-size) solid #dddddd;
+    }
+
+    &.down:after {
+        top: calc(-1 * (var(--arrow-size) + var(--border-size)));
+        left: var(--arrow-left);
+    }
+
+    &.up:after {
+        top: calc(100% + var(--border-size));
+        left: var(--arrow-left);
+        transform: rotate(180deg);
+    }
+
+    &.left:after {
+        top: var(--arrow-top);
+        left: 100%;
+        transform: rotate(90deg);
+    }
+
+    &.right:after {
+        top: var(--arrow-top);
+        left: calc(-2 * var(--arrow-size));
+        transform: rotate(-90deg);
+    }
+}
+
+//default
+.v-tooltip-box {
+    background-color: var(--tooltip-background-default);
+    color: black;
+}
+
+//define specific tooptip class here.
+
+.v-tooltip-box.info-message-list {
+    background-color: var(--tooltip-background-info);
+    color: #ffffff;
+}
+
+
+.v-tooltip-box.warning-message-list {
+    background-color: var(--tooltip-background-warning);
+    color: #ffffff;
+}
+
+.v-tooltip-box.error-message-list {
+    background-color: var(--tooltip-background-error);
+    color: #ffffff;
+}
