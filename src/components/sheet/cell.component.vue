@@ -68,10 +68,24 @@
 
     .v-grid{
         .grid-cell{ 
+            position: relative;
+
             text-align: center;
             line-height: var(--row-height);
             border-top: 0.25px solid var(--grid-border-color);
             border-left: 0.25px solid var(--grid-border-color);            
+        }
+
+        .grid-cell:after{
+            content: "";
+            position: absolute;
+            top: 0;
+            right: 0;
+            width: 0px;
+            height: 0px;
+            border-left: 5px solid transparent;
+            border-right: 5px solid orange;
+            border-bottom: 5px solid transparent;
         }
     }
 

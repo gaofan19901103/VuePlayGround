@@ -1,6 +1,6 @@
 <template>
     <div class="selection-area-root" v-if="selections.length">
-        <div class="selection-area" v-for="area in selectionAreas" v-bind:key="area.key" :style="area.style"></div>
+        <div class="selection-area" v-for="area in selectionAreas" v-bind:key="area.key" :style="area.style"><div class="dot"></div></div>
     </div>
 </template>
 
@@ -74,6 +74,19 @@
         pointer-events: none;
         border: 2px solid var(--selection-area-border);
         background-color: var(--selection-area-color);
+
+        .dot{
+            position: absolute;
+            bottom: -4px;
+            right: -4px;
+            height: 8px;
+            width: 8px;
+            border-radius: 4px;
+            background-color: #ff6358;
+            border: 0.5px solid white;
+            pointer-events: all;
+            cursor: crosshair;
+        }
     }
 
 }
