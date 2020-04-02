@@ -6,16 +6,11 @@
 </template>
 
 <script>
-    import cc from './reset-submission-view.vue';
-
     export default {
         data() {
             return {
                 message: 'Hello Vue',
             };
-        },
-        components: {
-            'xxx': cc
         }
     };
 </script>

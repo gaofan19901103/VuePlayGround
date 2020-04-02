@@ -3,48 +3,25 @@ require('./util/tooltip.js');
 
 import Vue from 'vue';
 import App from './components/App.vue';
-import g from './components/g.vue';
-import container from './components/reset-submission-view.vue'; 
-import slider from './components/slider.vue';
-import parent from './components/parent.vue';
-import xxx from './components/child.vue';
-import VS from './components/virtual-scroller.vue';
-import sheet from './components/sheet/sheet.component.vue';
+import Sheet from './components/sheet/sheet.component.vue';
+
 import { FraMeta, FraTemplate } from './metaData.js';
 import tooltip from './components/tooltip/tooltip.directive.js';
+import {onResize } from './directives/resize.directive.js';
 
-require('./directives/test-directive.js');
-require('./directives/tooltip.js');
-require('./directives/resize.directive.js');
 
 Vue.component('app', App);
-Vue.component('container', container);
-Vue.component('grid', g);
-Vue.component('slider', slider);
-Vue.component('parent', parent);
-Vue.component('xxx', xxx);
-Vue.component('virtual-scroller', VS);
-Vue.component('sheet', sheet);
+Vue.component('sheet', Sheet);
+
 Vue.directive('tooltip',tooltip);
-
-var list = [];
-
-for(let i = 0; i < 1000; i ++){
-    list.push({id: i, rt: '01-AUG-19', vt:'02-AUG-19', rate: '1.234567', currency: 'USD', product:'FRA', tenor:'3M', status:'Open'});
-}
+Vue.directive('on-resize',onResize);
 
 window.myVue = new Vue({
   el: '#app',
   data:{
     testString: 'hello w',
-    listSource: list,
     meta: FraMeta,
-    template: FraTemplate,
-    tooltipTestData: {
-      component: 'message-list',
-      props:{ messages: ['im a child']},
-      classList: ['error-message-list']
-    }
+    template: FraTemplate
   },
   methods:{
     xxx: function(){
@@ -59,6 +36,8 @@ window.myVue.$on('sheet-data-changed', function(id, changes){
   //async tasks  GF:Review
 });
 
+
+//--------------------------------------------------------------------------------------------------------------
 var testEl = document.getElementById("main-container");
 var dragEl = document.getElementById("drag");
 
@@ -105,3 +84,4 @@ function dragElement(elmnt) {
     document.onmousemove = null;
   }
 }
+//--------------------------------------------------------------------------------------------------------------

@@ -16,3 +16,18 @@ Vue.directive('on-resize', {
         el._resizeObserver = null;
     }
 })
+
+export const onResize = {
+    inserted: function (el, binding, vnode) {
+        el._resizeObserver.observe(el);
+    },
+    bind: function (el, binding, vnode) {
+        el._resizeObserver = new ResizeObserver(entries => {
+            binding.value();
+        });
+    },
+    unbind: function () {
+        el._resizeObserver.disconnect();
+        el._resizeObserver = null;
+    }
+}
