@@ -2,32 +2,20 @@
   <div class="v-sheet-vessel" v-on-resize="onResize">
     <div class="v-sheet-container" tabindex="0"  @mousedown="onMouseDown($event)"  @keydown="onKeyDown($event)" @dblclick="onDblClick">
         
-        <div class="v-sheet-header">
-            <grid-header :columns="indexedCols" :indexed-header-rows="indexedHeaderRows" :width="sheetWidth" :selections="selections"></grid-header>
+        <div class="v-sheet-header" ref="sheetHeader">
+            <grid-header :columns="columns" :indexed-header-rows="headerRows" :selections="selections"></grid-header>
         </div>
 
-        <!-- <div class="v-sheet-body">
-            <div>
-                <grid :virtual-list="virtualList" :columns="indexedFreezeCols" :grid-top="gridTop"></grid> 
-            </div> -->
-
-            <div class="v-sheet" tabindex="0"
-                @scroll="onScroll($event)" 
-                @contextmenu.prevent="onMenu" 
- >
-                <freeze-grid :virtual-list="virtualList" :columns="indexedFreezeCols" :grid-top="gridTop" :indexed-cols="indexedCols" :indexed-rows="indexedAll" :selections="selections"></freeze-grid>  
-                <grid :virtual-list="virtualList" :columns="indexedNormalCols" :grid-top="gridTop"></grid>    
-                <selection-area :selections="selections" :indexed-rows="indexedAll" :indexed-cols="indexedCols"></selection-area>
-                <div class="vault" :style="{ height: (rowCount - indexedHeaderRows.length) * rowHeight + 'px' }"></div>
-                <cell-editor v-if="showCellEditor" :combo="cellEditCombo" v-on:hide-cell-editor="setValue"></cell-editor>
-            </div>
-        <!-- </div> -->
-
-        <!-- <freeze-selection-area :selections="selections" :indexed-rows="indexedAll" :indexed-cols="indexedCols"></freeze-selection-area> -->
+        <div class="v-sheet" tabindex="0" ref="sheet"
+            @scroll="onScroll($event)" 
+            @contextmenu.prevent="onMenu">
+            <freeze-grid :virtual-list="virtualList" :columns="freezeCols" :grid-top="gridTop" :indexed-cols="columns" :indexed-rows="rows" :selections="selections"></freeze-grid>  
+            <grid :virtual-list="virtualList" :columns="bodyCols" :grid-top="gridTop"></grid>    
+            <selection-area :selections="selections" :indexed-rows="rows" :indexed-cols="columns"></selection-area>
+            <div class="vault" :style="{ height: (rowCount - headerRowCount) * rowHeight + 'px' }"></div>
+            <cell-editor v-if="showCellEditor" :combo="cellEditCombo" v-on:hide-cell-editor="setValue"></cell-editor>
+        </div>
     </div>
-
-
-
   </div>
 </template>
 
@@ -38,7 +26,6 @@
     import SelectionArea from './selection-area.component.vue';
     import FreezeGrid from './grid-freeze.component.vue';
     import CellEditor from './cell-editor.component.vue';
-    import {convertColumns, convertRows } from '../../services/sheet-data.service.js';
 
     export default {
         components:{
@@ -49,109 +36,86 @@
             cellEditor: CellEditor
         },
         created: function(){
-            // GF:Review: this method shouldn't be in this life cycle method, they need to be reactive to changes. reactive to metaData change.
-            let convertedCols = convertColumns(this.meta);
-            let convertedRows = convertRows(this.meta, convertedCols);
 
-            let headerIndex = convertedRows.findIndex(x => !x.isHeader);
-
-
-            this.indexedCols = convertedCols;
-            this.indexedAll = convertedRows;
-            this.indexedHeaderRows = convertedRows.slice(0, headerIndex);
-            this.indexedRows = convertedRows.slice(headerIndex, convertedRows.length);
-
-            let lastFreezeColIndex = convertedCols.findIndex(x => !x.freeze);
-            this.indexedFreezeCols = convertedCols.slice(0, lastFreezeColIndex);
-            this.indexedNormalCols = convertedCols.slice(lastFreezeColIndex, convertedCols.length);
-
-            this.colCount = convertedCols.length;
-            this.rowCount = convertedRows.length;
         },
-        mounted: function(){
-            this.sheetEl = this.$el.querySelector('.v-sheet');
-            this.sheetHeaderEl = this.$el.querySelector('.v-sheet-header');
-            this.sheetHeight = this.$el.clientHeight;
-            this.gridRect = this.$el.querySelector('.v-sheet').getBoundingClientRect(); 
-
-            // this.rowCount = Object.keys(this.meta.Rows).length;
-            // this.colCount = this.meta.Columns.length;       
+        mounted: function(){      
+            this.sheetEl = this.$refs.sheet;
+            this.sheetHeaderEl = this.$refs.sheetHeader;
             
+            //GF:Review - only static data should be populated this way, which will not change within the lifecycle of a sheet component, but I made an exception for sheetRect for now.
+            this.sheetRect = this.sheetEl.getBoundingClientRect(); 
             
-            this.sheetWidth = this.indexedRows[0].cells[this.colCount - 1].x + this.indexedCols[this.colCount - 1].width;
         },
         props:{
-            template: {type: Object, required: true },
-            meta: {type: Object, required: true }, 
-            rowHeight: {type: Number, required: false, default: 20 },
+            rows: {type: Array, required: false, default: []},
+            columns: {type: Array, required: false, default: []},
+            headerColumns: {type: Array, required: false, default: null }, //GF:Review - for merge cell header.
+            rowHeight: {type: Number, required: false, default: 20 }, //GF:Review - now I'm assuming all rows have same height in sheet-body, possible to change, but you need to change how you scroll and the virtual list calculation.
             columnWidth: {type: Number, required: false, default: 90 }
         },
         data:function(){
             return{
-                sheetWidth: 0,
-
-                //meta data
-                // indexedRows: Object.keys(this.meta.Rows).map((x,y) => Object.assign(this.meta.Rows[x], {rowIndex: y })),
-                // indexedCols: this.meta.Columns.map((x,y) => Object.assign(x, {colIndex: y })),
-                indexedAll: [],
-                indexedHeaderRows: [],
-                indexedRows: [],
-                indexedCols: [],
-                indexedFreezeCols: [],
-                indexedNormalCols: [],
-                //matrix: this.meta.map(x => Object.keys(x).map(y => x[y])),
-
                 //sheet meta
                 sheetEl: null,
                 sheetHeaderEl: null,
-                sheetHeight: 0,
-                gridRect: null,
-                colCount: 0,
-                rowCount: 0,
+                sheetRect: null,
 
-                //virtual scroll
+                //for virtual scroller
                 lastVirtualPosition: 0,
-                virtualBuffer: 0, 
+                virtualBuffer: 0, //GF:Review - I need to think about the potential issues.
                      
-                //drag scroll
-                rowIndex: null,
-                columnIndex: null,
-                currentOverCell: {row: null, col: null},
-                isRAFLooping: false,
-                onDragScroll: null,
-                scrollSpeed: 20,
+                //for raf
+                currentRowIndex: null,
+                currentColumnIndex: null,
                 currentEqurant: 0,
-                lastCell: null,
-                lastArea: null,
+                isRAFLooping: false,
                 startCell: null,
-
-                //cell selections
-                selections:[{start:{row: 0, col: 0}, end:{row: 0, col: 0}}],
-                //selectionMatrix: null,
-                currentSelectionIndex: 0,
-
                 render: null,
                 rafRef: null,
 
-                //editing
+                //for cell selections
+                selections:[{start:{row: 0, col: 0}, end:{row: 0, col: 0}}],
+                currentSelectionIndex: 0,
+
+                //for cell edit
                 showCellEditor: false,
                 cellEditCombo: null
             }   
         },
         computed:{         
-            virtualList: function(){ //depends on indexedRows, lastVirtualPostion, sheetHeight, rowHeight, virtualBuffer.
-                if(!this.sheetHeight) return[];
-                let visibleRowCount = Math.ceil(this.sheetHeight / this.rowHeight);
+            colCount: function(){ 
+                return this.columns.length;
+            },
+            rowCount: function(){
+                return this.rows.length;
+            },  
+            headerRowCount: function(){
+                return this.rows.findIndex(x => !x.isHeader);
+            },
+            freezeColCount: function(){
+                return this.columns.findIndex(x => !x.freeze);
+            },
+            headerRows: function(){
+                return this.rows.slice(0, this.headerRowCount);
+            },
+            bodyRows: function(){
+                return this.rows.slice(this.headerRowCount, this.rowCount);
+            },
+            freezeCols: function(){
+                return this.columns.slice(0, this.freezeColCount);
+            },
+            bodyCols: function(){
+                return this.columns.slice(this.freezeColCount, this.colCount);
+            },
+            virtualList: function(){ //depends on bodyRows, lastVirtualPostion, sheetRect, rowHeight, virtualBuffer.
+                if(!this.sheetRect) return[];
+                let visibleRowCount = Math.ceil(this.sheetRect.height / this.rowHeight);
                 let scrolledRowCount = Math.floor(this.lastVirtualPosition / this.rowHeight);          
                 let startIndex = scrolledRowCount  - this.virtualBuffer < 0 ? 0 : scrolledRowCount  - this.virtualBuffer;   
                 let endIndex = startIndex + visibleRowCount + this.virtualBuffer * 2;                      
-                let result = this.indexedRows.slice(startIndex, endIndex);
+                let result = this.bodyRows.slice(startIndex, endIndex);
 
-                // if(result[0].rowIndex != 0){
-                //     result.unshift(this.headerRow);
-                // }
-
-                console.log('virtual list',result);
+                console.debug('current virtual list computed: ',result);
                 return result;
             },
             gridTop: function(){ //depends on lastVirtualPostion
@@ -160,27 +124,14 @@
                 return _gridTop;
             }  
         },
-
         watch:{
-           
+           //GF:Review - I'm thinking to move some of the calculations here to reduce the vue re-activity chain, would it be a good idea ?
         },
         methods:{
-           onScroll: function(e){
-              this.showCellEditor = false;
-              this.sheetHeaderEl.scrollLeft = this.sheetEl.scrollLeft;
-
-              console.log('isDragingScroll -->', this.isRAFLooping);
-              if(this.isRAFLooping) return;
-              if(Math.abs(e.target.scrollTop -  this.lastVirtualPosition) > this.virtualBuffer * this.rowHeight){
-                    console.debug('virtual list re-render', e.target.scrollTop);
-                    this.lastVirtualPosition = e.target.scrollTop;              
-                }
-           },
-           onResize: function(){
-               console.log('on resize');
-               this.sheetHeight = this.$el.clientHeight;
-               this.gridRect = this.$el.querySelector('.v-sheet').getBoundingClientRect();
-           },     
+           scrollToCell(rowIndex, colIndex){
+               //GF:Review - this never used, but it will be useful.
+               this.sheetEl.scrollTo(this.columns[colIndex].x, this.rows[rowIndex].y); 
+           }, 
            copyCurrentSelection(){
                 let timerBefore = performance.now();
 
@@ -189,14 +140,15 @@
                 let brX = Math.max(Number(this.selections[this.currentSelectionIndex].start.col), Number(this.selections[this.currentSelectionIndex].end.col));
                 let brY = Math.max(Number(this.selections[this.currentSelectionIndex].start.row), Number(this.selections[this.currentSelectionIndex].end.row));
 
-                let valueMatrix = this.indexedAll.map(x => Object.keys(x.cells).map(y => x.cells[y].value));
+                let valueMatrix = this.rows.map(x => Object.keys(x.cells).map(y => x.cells[y].value));
+                valueMatrix = valueMatrix.slice(tlY, brY + 1);
+                valueMatrix = valueMatrix.map(x => x.slice(tlX, brX + 1));
 
-                let twoD = valueMatrix.slice(tlY, brY + 1);
-                twoD = twoD.map(x => x.slice(tlX, brX + 1));;
-                let content = this.buildString(twoD);
+                let content = this.buildCopyContent(valueMatrix);
                 Portal.Utils.copyToClipboard(content);
 
                 let timerAfter = performance.now();
+
                 console.info(`copy used ${Math.ceil(timerAfter - timerBefore)} milliseconds`);
            },   
            moveSelection: function(rowIncrement, colIncrement, scroll = true, check = false){
@@ -281,18 +233,25 @@
                 // //    setTimeout(x) ; 
                 // } 
            },
-           buildString: function(twoDArray, withStyle){
+           buildCopyContent: function(twoDArray, withStyle){
                const tab = '\t';
                const lb = '\n';
 
                if(withStyle)
-                    return '';//build up <table> with style getting from css variables. 
+                    return ''; //GF:Review - build up <table> with style getting from css.
                else
                     return twoDArray.reduce((a,b) => `${a}${b.reduce((c,d) =>`${c}${tab}${d}`)}${lb}`,'');
            },
            rafLoop: function(){
                this.rafRef = requestAnimationFrame(this.rafLoop);
                this.render();
+           },
+           resetRaf: function(){
+                cancelAnimationFrame(this.rafRef);
+                this.rafRef = null;
+                this.isRAFLooping = false;
+
+                console.debug('raf loop canceled.');
            },
            isCellInView: function(row, column){
                 let nextCell = this.sheetEl.querySelector(`[data-row="${row}"][data-col="${column}"]`);
@@ -312,34 +271,51 @@
 
                 let cellRect = nextCell && nextCell.getBoundingClientRect();
 
-                // let isOut = this.gridRect.top > cellRect.top ||
-                //             this.gridRect.top + this.gridRect.height < cellRect.top + cellRect.height ||
-                //             this.gridRect.left > cellRect.left || 
-                //             this.gridRect.left + this.gridRect.width < cellRect.left + cellRect.width;
+                //GF:Reivew - the comment area is the one to use, but think about the freeze col and header...
 
-                let isOut = this.gridRect.top > cellRect.top ||
-                this.gridRect.top + this.gridRect.height < cellRect.top + cellRect.height ||
-                (this.gridRect.left + this.indexedFreezeCols[this.indexedFreezeCols.length - 1].x) > cellRect.left ||  //GF:Review: this is to offset the freeze.
-                this.gridRect.left + this.gridRect.width < cellRect.left + cellRect.width;
+                // let isOut = this.sheetRect.top > cellRect.top ||
+                //             this.sheetRect.top + this.sheetRect.height < cellRect.top + cellRect.height ||
+                //             this.sheetRect.left > cellRect.left || 
+                //             this.sheetRect.left + this.sheetRect.width < cellRect.left + cellRect.width;
+
+                let isOut = this.sheetRect.top > cellRect.top ||
+                this.sheetRect.top + this.sheetRect.height < cellRect.top + cellRect.height ||
+                //this.sheetRect.left > cellRect.left ||
+                (this.sheetRect.left + this.freezeCols[this.freezeColCount - 1].x) > cellRect.left ||  //GF:Review: this is to offset the freeze.
+                this.sheetRect.left + this.sheetRect.width < cellRect.left + cellRect.width;
 
                 return !isOut;
            },
            isCellIndexWithinRange: function(row, column){
                return row >=0 && row < this.rowCount && column >= 0 && column < this.colCount;
            },
-           getCurrentArea:function(currentCell){
-               if(currentCell.dataset.header){
-                   return 'header';
-               }
-               else if(currentCell.dataset.freeze){
-                   return 'freeze';
-               }
-               else{
-                   return 'body';
-               }
+            hideCellEditor: function(){
+                this.showCellEditor = false;
+            },
+            setValue: function(valueObj){
+                this.rows[valueObj.row].cells[valueObj.col].value = valueObj.newValue;
+                this.$root.$emit('sheet-data-changed', 'input sheet', [valueObj]);
+            },
+
+           //events-----------------------------------------------------------------------------  
+           onScroll: function(e){
+              this.showCellEditor = false;
+              this.sheetHeaderEl.scrollLeft = this.sheetEl.scrollLeft;
+
+              console.debug('on scroll, and RAFLopping: ', this.isRAFLooping);
+
+              if(this.isRAFLooping) return;
+              if(Math.abs(e.target.scrollTop -  this.lastVirtualPosition) > this.virtualBuffer * this.rowHeight){
+                    console.debug('change lastVirtualPosition: ', e.target.scrollTop);
+                    this.lastVirtualPosition = e.target.scrollTop;              
+              }
            },
+           onResize: function(){
+               console.debug('the v-sheet-vessel resized');
+               this.sheetRect = this.$refs.sheet.getBoundingClientRect();
+           },  
            onMenu: function(event){
-               // put menu here if needed.
+               // GF:Reivew- todo : put menu here if needed.
            },
            onKeyDown: function(event){
                 if(!this.showCellEditor)
@@ -413,38 +389,30 @@
                 }
            },
            onKeyUp: function(){
-                cancelAnimationFrame(this.rafRef);
-                this.rafRef = null;
-
-                this.isRAFLooping = false;
-
+                this.resetRaf();
                 document.onkeyup = null;
            },
            onMouseDown:  function (e) {
-                let that = this;
-                var rowIndex = null;
-                var columnIndex = null;
-                                                
+                        
                 if(e.which == 3) return;
                 
-                this.gridRect = this.sheetEl.getBoundingClientRect();
+                this.sheetRect = this.sheetEl.getBoundingClientRect();
                 let dataSet = e.target.dataset;
                 if(dataSet.row == undefined || dataSet.col == undefined){
-                    //console.error('which cell is it???');
-                    return;
+                    throw 'which cell is it???';
                 } 
 
-                this.rowIndex = Number(dataSet.row);
-                this.columnIndex = Number(dataSet.col);
-                console.log('mouse down', this.rowIndex, this.columnIndex);                   
+                this.currentRowIndex = Number(dataSet.row);
+                this.currentColumnIndex = Number(dataSet.col);
+                console.log('mouse down', this.currentRowIndex, this.currentColumnIndex);                   
 
                 if (e.which == 1) {
                     this.showCellEditor = false;
 
                     if(e.shiftKey){
                         e.preventDefault();
-                        this.selections[this.currentSelectionIndex].end.row = this.rowIndex;
-                        this.selections[this.currentSelectionIndex].end.col = this.columnIndex;
+                        this.selections[this.currentSelectionIndex].end.row = this.currentRowIndex;
+                        this.selections[this.currentSelectionIndex].end.col = this.currentColumnIndex;
                     }
                     else{
                         if(e.ctrlKey){
@@ -456,10 +424,10 @@
                             this.currentSelectionIndex = 0;
                         }
 
-                        this.selections[this.currentSelectionIndex].start.row = this.rowIndex;
-                        this.selections[this.currentSelectionIndex].start.col = this.columnIndex;
-                        this.selections[this.currentSelectionIndex].end.row = this.rowIndex;
-                        this.selections[this.currentSelectionIndex].end.col = this.columnIndex;
+                        this.selections[this.currentSelectionIndex].start.row = this.currentRowIndex;
+                        this.selections[this.currentSelectionIndex].start.col = this.currentColumnIndex;
+                        this.selections[this.currentSelectionIndex].end.row = this.currentRowIndex;
+                        this.selections[this.currentSelectionIndex].end.col = this.currentColumnIndex;
                     }
                             
                     this.startCell = e.target;                            
@@ -469,12 +437,9 @@
                 document.onmouseup = this.onEndDarg;                                             
             },
             onMouseMove: function(e){
-
                 e.preventDefault();
 
                 let currentCell = e.target;
-               // let lastCell = this.lastCell;
-                
                 
                 if(this.startCell && this.startCell.dataset.header && !currentCell.dataset.header && !this.isRAFLooping){
                     this.sheetEl.scrollTo(this.sheetEl.scrollLeft, 0);
@@ -483,33 +448,6 @@
                     this.sheetEl.scrollTo(0, this.sheetEl.scrollTop);
                 }
                 
-
-                //this.lastArea = this.getCurrentArea(currentCell);
-                
-
-                // if((!this.lastCell || this.lastCell.dataset.header) && currentCell.dataset.header){
-                //     this.currentEqurant = 5;
-                //     this.lastCell = currentCell;
-                // }
-                // else if(this.lastCell && !this.lastCell.dataset.header && currentCell.dataset.header){
-                //     this.currentEqurant = 2;
-                //     this.lastCell = lastCell;
-                // }
-                // else{
-                //     this.currentEqurant = Portal.Utils.getMouseEqurant(e.clientX, e.clientY, this.gridRect, currentCell); 
-                //     this.lastCell = currentCell;
-                // }
-
-                
-
-                // if((!this.lastCell || this.lastCell.dataset.header) && currentCell.dataset.header){
-                //     this.currentEqurant = 5;
-                // }
-                // else{
-                //      this.currentEqurant = Portal.Utils.getMouseEqurant(e.clientX, e.clientY, this.gridRect);
-                //      this.lastCell = currentCell;
-                // }
- 
                 if(this.startCell && this.startCell.dataset.header && currentCell.dataset.header){
                     this.currentEqurant = 5;
                 }
@@ -520,33 +458,24 @@
                     this.currentEqurant = 4;
                 }
                 else{
-                    this.currentEqurant = Portal.Utils.getMouseEqurant(e.clientX, e.clientY, this.gridRect);
-                }
-                
-                this.lastCell = currentCell;
-                
+                    this.currentEqurant = Portal.Utils.getMouseEqurant(e.clientX, e.clientY, this.sheetRect);
+                }       
 
-                console.log('--------------equrant',  this.currentEqurant);
+                console.debug('current equrant: ',  this.currentEqurant);
                 if(this.currentEqurant == 5){
-                    console.log('cancel ----------------- interval');
-
-                    cancelAnimationFrame(this.rafRef);
-                    this.rafRef = null;
-                    this.isRAFLooping = false;
-
+                    this.resetRaf();
 
                     let dataSet = currentCell.dataset;
 
-
-                    if(dataSet.row && dataSet.col && (this.rowIndex != dataSet.row || this.columnIndex != dataSet.col)){
-                        console.log('mouse moveing', currentCell);
+                    if(dataSet.row && dataSet.col && (this.currentRowIndex != dataSet.row || this.currentColumnIndex != dataSet.col)){
+                        console.debug('mouse moveing to cell: ', currentCell);
                                                 
-                        this.rowIndex = Number(dataSet.row);
-                        this.columnIndex = Number(dataSet.col);
+                        this.currentRowIndex = Number(dataSet.row);
+                        this.currentColumnIndex = Number(dataSet.col);
 
                         if(this.selections[this.currentSelectionIndex] && this.selections[this.currentSelectionIndex].end){ //this needs to be considered.
-                            this.selections[this.currentSelectionIndex].end.col = this.columnIndex;
-                            this.selections[this.currentSelectionIndex].end.row = this.rowIndex;
+                            this.selections[this.currentSelectionIndex].end.col = this.currentColumnIndex;
+                            this.selections[this.currentSelectionIndex].end.row = this.currentRowIndex;
                         }                               
                     }
                 }
@@ -578,7 +507,7 @@
                             this.render = () => { this.expandSelection(1, 1); }; 
                             break;
                         default:
-                            console.error('equrant not found...');
+                            throw 'equrant not found...';
                             break;
                     }
 
@@ -587,20 +516,9 @@
                 }                                
             },
             onEndDarg: function(e){
-                console.log('cancel ----------------- interval');
-
-                this.isRAFLooping = false; 
-                cancelAnimationFrame(this.rafRef);
-                this.rafRef = null;
+                this.resetRaf();
                 document.onmouseup = null;
                 document.onmousemove = null;
-            },
-            hideCellEditor: function(){
-                this.showCellEditor = false;
-            },
-            setValue: function(valueObj){
-                this.indexedAll[valueObj.row].cells[valueObj.col].value = valueObj.newValue;
-                this.$root.$emit('sheet-data-changed', 'input sheet', [valueObj]);
             },
             onDblClick: function(event){
                 console.log('double click');
@@ -613,13 +531,13 @@
                 this.cellEditCombo = {
                     row: row,
                     col: col,
-                    cell: this.indexedAll[row].cells[col],
-                    value: this.indexedAll[row].cells[col].value,
+                    cell: this.rows[row].cells[col],
+                    value: this.rows[row].cells[col].value,
                     style:{
-                        top: (this.indexedAll[row].cells[col].y - 20) + 'px',
-                        left: this.indexedAll[row].cells[col].x + 'px',
+                        top: (this.rows[row].cells[col].y - 20) + 'px',
+                        left: this.rows[row].cells[col].x + 'px',
                         height: this.rowHeight + 'px',
-                        width: this.indexedCols[col].width + 'px'
+                        width: this.columns[col].width + 'px'
                     }
                 };
             }     
@@ -637,8 +555,6 @@
             box-sizing: border-box;
         }
         
-
-
         .v-sheet-container{        
             --sheet-font-color: black;
             --sheet-font-size: 12px;
@@ -646,7 +562,7 @@
             --vault-height: 0px;
             --sheet-scroller-size: 10px;
 
-            transform: rotate(0deg); // this is import for fixed positioned element.
+            transform: rotate(0deg); // GF:Review - this is being used by grid-header, area on top position fixed reference this, change it.
 
             position: relative;
             height: 100%;
@@ -658,29 +574,20 @@
             color: var(--sheet-font-color);
 
             .v-sheet-header{
-                background-color: aquamarine;
-                width: calc(100% - var(--sheet-scroller-size)); // don't always minus this 10px, if there is no scroller no need, but I havn't checked it yet.
+                --sheet-background-color: aquamarine;
+                --sheet-header-height: 0px;
+
+                background-color: var(--sheet-background-color);
+                width: calc(100% - var(--sheet-scroller-size)); // GF:Reivew - if there is not enough rows to show a scroller, the deduction is not needed.
                 height: 20px;  // GF:Review: should be dynamic, variable.
                 overflow: auto;
 
                 &::-webkit-scrollbar {
                     height: 0px;
                 }
-                
-                // &::-webkit-scrollbar-track {
-                //     -webkit-box-shadow: inset 0 0 6px rgba(0,0,0,0.3); 
-                //     border-radius: 1px;
-                // }
-                
-                // &::-webkit-scrollbar-thumb {
-                //     border-radius: 1px;
-                //     -webkit-box-shadow: inset 0 0 6px rgba(0,0,0,0.5); 
-                // }
             }
 
             .v-sheet{
-                    //transform: rotate(0deg); // this is import for fixed positioned element.
-
                 display: flex;
                 outline: none;
                 position: relative;
@@ -699,9 +606,8 @@
                 &::-webkit-scrollbar {
                     width: var(--sheet-scroller-size);
                     height: var(--sheet-scroller-size);
-                }
+                }      
 
-            
                 &::-webkit-scrollbar-track {
                     -webkit-box-shadow: inset 0 0 6px rgba(0,0,0,0.3); 
                     border-radius: 10px;
@@ -711,46 +617,7 @@
                     border-radius: 10px;
                     -webkit-box-shadow: inset 0 0 6px rgba(0,0,0,0.5); 
                 }
-            }
-
-            // .v-sheet-body{
-            //     display: flex;
-            //     height: calc(100% - 20px); // GF:Review: 20 should be header height variable.
-
-            //     .v-sheet{
-            //         //transform: rotate(0deg); // this is import for fixed positioned element.
-
-            //         outline: none;
-            //         position: relative;
-            //         height: 100%; 
-            //         width: 100%;
-            //         overflow: auto;
-
-            //         .vault{
-            //             position: absolute;
-            //             top: 0;
-            //             left: 0;
-            //             width: 1px;
-            //             height: var(--vault-height);            
-            //         } 
-                    
-            //         &::-webkit-scrollbar {
-            //             width: var(--sheet-scroller-size);
-            //             height: var(--sheet-scroller-size);
-            //         }
-
-                
-            //         &::-webkit-scrollbar-track {
-            //             -webkit-box-shadow: inset 0 0 6px rgba(0,0,0,0.3); 
-            //             border-radius: 10px;
-            //         }
-                    
-            //         &::-webkit-scrollbar-thumb {
-            //             border-radius: 10px;
-            //             -webkit-box-shadow: inset 0 0 6px rgba(0,0,0,0.5); 
-            //         }
-            //     }                                                
-            // }       
+            }    
         }
     }
 </style>

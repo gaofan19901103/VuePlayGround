@@ -16,12 +16,16 @@ Vue.component('sheet', Sheet);
 Vue.directive('tooltip',tooltip);
 Vue.directive('on-resize',onResize);
 
+import {convertColumns, convertRows } from './services/sheet-data.service.js';
+
+let convertedCols = convertColumns(FraMeta);
+let convertedRows = convertRows(FraMeta, convertedCols);
+
 window.myVue = new Vue({
   el: '#app',
   data:{
-    testString: 'hello w',
-    meta: FraMeta,
-    template: FraTemplate
+    sheetRows: convertedRows,
+    sheetCols: convertedCols
   },
   methods:{
     xxx: function(){

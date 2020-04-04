@@ -34,7 +34,7 @@
         props:{
            indexedHeaderRows: {type: Array, required: false, default: [] },
            columns: {type: Array, required: false, default: []},
-           width: {type: Number,required: false, default: 0},
+          // width: {type: Number,required: false, default: 0},
            selections: {type: Array, required: false, default: []}
         },
         data:function(){
@@ -46,6 +46,9 @@
             };
         },
         computed:{
+            width: function(){
+                return this.columns[this.columns.length - 1].x + this.columns[this.columns.length - 1].width;
+            },
             selectionAreas:function(){
                 let areas = [];
 

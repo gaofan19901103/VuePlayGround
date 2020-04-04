@@ -95,6 +95,8 @@ export function convertRows(FraMeta, convertColumns){
             cells: {}
         };
 
+        item.y = rowIndex == 0 ? 0 : result[rowIndex - 1].y + (metaRowArray[rowIndex - 1].Height || 20);
+
         convertColumns.forEach((col, colIndex) =>{
             let cell = {};
 
