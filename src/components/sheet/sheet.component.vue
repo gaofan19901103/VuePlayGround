@@ -9,8 +9,8 @@
         <div class="v-sheet" tabindex="0" ref="sheet"
             @scroll="onScroll($event)" 
             @contextmenu.prevent="onMenu">
-            <freeze-grid :virtual-list="virtualList" :columns="freezeCols" :grid-top="gridTop" :indexed-cols="columns" :indexed-rows="rows" :selections="selections"></freeze-grid>  
-            <grid :virtual-list="virtualList" :columns="bodyCols" :grid-top="gridTop"></grid>    
+            <freeze-grid :virtual-list="virtualScrollList" :columns="freezeCols" :grid-top="offsetTop" :indexed-cols="columns" :indexed-rows="rows" :selections="selections"></freeze-grid>  
+            <grid :rows="virtualScrollList" :columns="bodyCols" :offset-top="offsetTop"></grid>    
             <selection-area :selections="selections" :indexed-rows="rows" :indexed-cols="columns" :header-rows="headerRows"></selection-area>
             <div class="vault" :style="{ height: (rowCount - headerRowCount) * rowHeight + 'px' }"></div>
             <cell-editor v-if="showCellEditor" :combo="cellEditCombo" v-on:hide-cell-editor="setValue"></cell-editor>
@@ -107,21 +107,23 @@
             bodyCols: function(){
                 return this.columns.slice(this.freezeColCount, this.colCount);
             },
-            virtualList: function(){ //depends on bodyRows, lastVirtualPostion, sheetRect, rowHeight, virtualBuffer.
+            virtualScrollList: function(){ //depends on bodyRows, lastVirtualPostion, sheetRect, rowHeight, virtualBuffer.
                 if(!this.sheetRect) return[];
+
                 let visibleRowCount = Math.ceil(this.sheetRect.height / this.rowHeight);
                 let scrolledRowCount = Math.floor(this.lastVirtualPosition / this.rowHeight);          
                 let startIndex = scrolledRowCount  - this.virtualBuffer < 0 ? 0 : scrolledRowCount  - this.virtualBuffer;   
-                let endIndex = startIndex + visibleRowCount + this.virtualBuffer * 2;                      
-                let result = this.bodyRows.slice(startIndex, endIndex);
+                let endIndex = startIndex + visibleRowCount + this.virtualBuffer * 2;     
 
-                console.debug('current virtual list computed: ',result);
-                return result;
+                let resultList = this.bodyRows.slice(startIndex, endIndex);
+
+                console.debug('current virtual scroll list computed: ', resultList);
+                return resultList;
             },
-            gridTop: function(){ //depends on lastVirtualPostion
-                let _gridTop = (this.lastVirtualPosition - this.virtualBuffer * this.rowHeight) < 0 ? 0 : (this.lastVirtualPosition - this.virtualBuffer * this.rowHeight);
-                _gridTop = _gridTop - (_gridTop % this.rowHeight); 
-                return _gridTop;
+            offsetTop: function(){ //depends on lastVirtualPostion
+                let offset = (this.lastVirtualPosition - this.virtualBuffer * this.rowHeight) < 0 ? 0 : (this.lastVirtualPosition - this.virtualBuffer * this.rowHeight);
+                let residual = offset % this.rowHeight; 
+                return offset - residual;
             }  
         },
         watch:{
@@ -135,6 +137,7 @@
            copyCurrentSelection(){
                 let timerBefore = performance.now();
 
+                //tl: top-left,  br: bottom-left
                 let tlX = Math.min(Number(this.selections[this.currentSelectionIndex].start.col), Number(this.selections[this.currentSelectionIndex].end.col));
                 let tlY = Math.min(Number(this.selections[this.currentSelectionIndex].start.row), Number(this.selections[this.currentSelectionIndex].end.row));
                 let brX = Math.max(Number(this.selections[this.currentSelectionIndex].start.col), Number(this.selections[this.currentSelectionIndex].end.col));
@@ -559,7 +562,6 @@
             --sheet-font-color: black;
             --sheet-font-size: 12px;
             --sheet-background-color: transparent;
-            --vault-height: 0px;
             --sheet-scroller-size: 10px;
 
             transform: rotate(0deg); // GF:Review - this is being used by grid-header, area on top position fixed reference this, change it.
@@ -599,8 +601,7 @@
                     position: absolute;
                     top: 0;
                     left: 0;
-                    width: 1px;
-                    height: var(--vault-height);            
+                    width: 1px;            
                 } 
                 
                 &::-webkit-scrollbar {

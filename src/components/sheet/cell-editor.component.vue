@@ -5,6 +5,7 @@
 </template>
 
 <script>
+//remember prevent default here, when a cell is active, use the key events, not working properly.
     export default {
         props:{
            combo: { type: Object, required: false }

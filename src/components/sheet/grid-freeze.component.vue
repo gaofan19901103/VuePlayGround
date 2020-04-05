@@ -102,11 +102,6 @@
                 .grid-row{
                     display: flex;
                     height: var(--row-height);  
-
-
-                    .grid-cell:last-child{
-                        border-right: 0.25px solid var(--grid-border-color);
-                    }
                 }
 
                 .grid-row:last-child{
