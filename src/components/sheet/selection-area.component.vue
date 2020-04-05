@@ -1,7 +1,10 @@
 <template>
-    <div class="selection-area-root" v-if="selections.length">
+    <div class="selection-area-root" v-if="selections.length" :style="{width: sweller}">
         <div class="selection-area" v-for="area in selectionAreas" v-bind:key="area.key" :style="area.style">
             <div class="drag-dot" v-if="showDragDot"></div>
+        </div>
+        <div class="selection-area" v-for="area in freezeSelectionAreas" v-bind:key="area.key" :style="area.style">
+            <div class="drag-dot" v-if="showDragDot && area.showDot"></div>
         </div>
     </div>
 </template>
@@ -17,12 +20,9 @@
         props:{
            selections: { type: Array, required: false, default: [] },
            headerRows: { type: Array, required: false, default: [] },
-           indexedRows: { type: Array, required: false, default: [] },
-           indexedCols: { type: Array, required: false, default: [] },
-
-           //GF:Review - the two props below for freeze col and header.
-           noBottomBorder: { type: Boolean, required: false, default: false },
-           noRightBorder: { type: Boolean, required: false, default: false } 
+           metaRows: { type: Array, required: false, default: [] },
+           metaColumns: { type: Array, required: false, default: [] },
+           freezeColCount: { type: Number, required: false, default: 0 }
         },
         data: function(){
             return{
@@ -30,6 +30,9 @@
             }
         },
         computed:{
+            sweller: function(){ // GF:Review - this is kind of a hack, needed for sticky position.
+                return this.metaColumns[this.metaColumns.length - 1].x + this.metaColumns[this.metaColumns.length - 1].width;
+            },
             showDragDot: function(){
                 return this.selections.length == 1;
             },
@@ -46,19 +49,51 @@
                     areas.push({
                         key: index,
                         style: {
-                            ...{
-                                top:  this.indexedRows[tlY].y + 'px',
-                                left: this.indexedCols[tlX].x + 'px',
-                                height: this.indexedRows[brY].y - this.indexedRows[tlY].y + this.indexedRows[brY].height + 'px',
-                                width: this.indexedCols[brX].x - this.indexedCols[tlX].x + this.indexedCols[brX].width + 'px'
-                            },
-                            ...this.noBottomBorder ? { borderBottom: 'none' } : {},
-                            ...this.noRightBorder ? { borderRight: 'none' } : {}
+                            top:  this.metaRows[tlY].y + 'px',
+                            left: this.metaColumns[tlX].x + 'px',
+                            height: this.metaRows[brY].y - this.metaRows[tlY].y + this.metaRows[brY].height + 'px',
+                            width: this.metaColumns[brX].x - this.metaColumns[tlX].x + this.metaColumns[brX].width + 'px'
                         }
                     });
                 });
 
                 return areas;
+            },
+            freezeSelectionAreas:function(){
+                if(!this.freezeColCount) return [];
+
+                let freezeAreas = [];
+
+                this.selections.forEach((slt, index) =>{  
+           
+                    let tlX = Math.min(Number(slt.start.col), Number(slt.end.col));
+                    let tlY = Math.min(Number(slt.start.row), Number(slt.end.row));
+                    let brX = Math.max(Number(slt.start.col), Number(slt.end.col));
+                    let brY = Math.max(Number(slt.start.row), Number(slt.end.row));
+
+                    if(tlX < this.freezeColCount){
+                        let freezeBrX = brX >= this.freezeColCount - 1 ? this.freezeColCount -1 : brX;
+                        let overBody = brX > this.freezeColCount - 1;
+
+                        freezeAreas.push({
+                            key: `freeze${index}`,
+                            showDot: !overBody,
+                            style: {
+                                ...{
+                                    position: 'sticky',
+                                    zIndex: 120,
+                                    transform:  `translateY(${this.metaRows[tlY].y}px)`,
+                                    left: this.metaColumns[tlX].x + 'px',
+                                    height: this.metaRows[brY].y - this.metaRows[tlY].y + this.metaRows[brY].height + 'px',
+                                    width: this.metaColumns[freezeBrX].x - this.metaColumns[tlX].x + this.metaColumns[freezeBrX].width + 'px',
+                                },
+                                ...overBody ? { borderRight: 'none' } : {}
+                            }
+                        });
+                    }
+                });
+
+                return freezeAreas;
             }
         },
         updated: function(){
@@ -73,6 +108,7 @@
     --offSetTop: 0px;
      position: absolute;
      top: var(--offSetTop); 
+     height: 0; 
 
     // position: fixed; //GF:Review - todo: I think absolute is better, but we need to set the top dynamically base on the height.
     // top: 0;  

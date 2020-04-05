@@ -32,8 +32,8 @@ export function convertColumns(FraMeta){
             span: 1,
             freeze: index < 3
         };
-
-        col.x = index == 0 ? 0 : columnArray[index - 1].x + col.width;
+        
+        col.x = index == 0 ? 0 : columnArray[index - 1].x + columnArray[index - 1].width;
 
         columnArray.push(col);
     });

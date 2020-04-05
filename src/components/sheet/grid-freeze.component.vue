@@ -1,9 +1,9 @@
 <template>
 <div class="v-grid-freeze-container" style="z-index: 10; position: sticky; left: 0;">
-   <div class="v-grid-freeze" :style="{ transform: `translateY(${gridTop}px)`, 'background-color': 'grey'}" ref="GridEl">
+   <div class="v-grid-freeze" :style="{ transform: `translateY(${offsetTop}px)`, 'background-color': 'grey'}" ref="GridEl">
     <!-- <div class="v-grid-freeze" :style="{ top: `${gridTop}px`, 'background-color': 'grey', 'z-index': 10}" ref="GridEl"> -->
         <!-- <div> -->
-                <div :class="{'grid-row': true, 'freeze': item.freeze }" v-for="item in virtualList" v-bind:key="item.rowIndex" :style="{height: item.height + 'px'}">
+                <div :class="{'grid-row': true, 'freeze': item.freeze }" v-for="item in rows" v-bind:key="item.rowIndex" :style="{height: item.height + 'px'}">
                     <cell
                         v-for="col in columns" v-bind:key="col.colIndex"
                         :row-index="item.rowIndex"
@@ -19,31 +19,50 @@
 
             <!-- </div> -->
         </div>
-        <div class="selection-area-root" v-if="selections.length" style="z-index: 10">
+        <!-- <div class="selection-area-root" v-if="selections.length" style="z-index: 10">
             <div :class="{'selection-area': true, 'no-border-right': area.noRightBorder }" v-for="area in selectionAreas" v-bind:key="area.key" :v-if="area.show" :style="{ top: area.top + 'px', left: area.left + 'px', height: area.height + 'px', width: area.width + 'px' }"></div>
-        </div>
+        </div> -->
+        <selection-area :selections="freezeSelections" :indexed-rows="indexedRows" :indexed-cols="columns" :header-rows="headerRows"></selection-area>
+        <div class="vault" :style="{ height: (indexedRows.length - headerRows.length) * $parent.rowHeight + 'px' }"></div>
     </div>
 </template>
 
 <script>
     import Cell from './cell.component.vue';  
-    import Row from './row.component.vue';
+    import selectionArea from './selection-area.component.vue';
 
     export default {
         components:{
             'cell': Cell,
-            'row': Row
+            'selection-area': selectionArea
         },
         props:{
-           virtualList: {type: Array, required: false, default: [] },
+           rows: {type: Array, required: false, default: [] },
            columns: {type: Array, required: false, default: []},
-           gridTop: {type: Number, required: false, default: 0},
-           selections: {type: Array, required: false, default: 0 },
+           offsetTop: {type: Number, required: false, default: 0},
+           selections: {type: Array, required: false, default: [] },
            indexedRows: {type: Array, required: false, default: [] },
-           indexedCols: {type: Array, required: false, default: [] }
+           indexedCols: {type: Array, required: false, default: [] },
+           headerRows: {type: Array, required: false, default: [] },
+           freezeColCount: {type: Number, required: false, default: 0 }
         },
 
         computed:{
+            freezeSelections: function(){
+                return this.selections.map(selection =>{
+                    return {                      
+                        start:{
+                            row: selection.start.row,
+                            col: selection.start.col
+                        },
+                        end:{
+                            row: selection.end.row,
+                            col: selection.end.col >= this.freezeColCount - 1 ? this.freezeColCount - 1 : selection.start.col
+                        },
+                        noRightBorder: selection.start.col >= this.freezeColCount - 1
+                    };
+                });
+            },
             selectionAreas:function(){
                 let freezeAreas = [];
 
@@ -79,7 +98,7 @@
         },
         updated: function(){
             let x =0;
-            console.log('grid freeze virtualList updated');
+            console.log('grid freeze virtual scorll list updated');
         }
     };
 </script>

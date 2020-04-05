@@ -46,6 +46,16 @@
                     });
                 }
 
+                if(this.freeze && !this.header){
+                    style = Object.assign(style, {
+                        position: 'sticky',
+                        left: `${this.x}px`,
+                        //GF:Review - the style below is temporary, standardize them.
+                        backgroundColor: 'grey',
+                        zIndex: 90
+                    });
+                }
+
                 return style;
             },
             attributes: function(){            

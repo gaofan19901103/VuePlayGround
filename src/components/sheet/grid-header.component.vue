@@ -24,12 +24,10 @@
 
 <script>
     import Cell from './cell.component.vue';  
-    import Row from './row.component.vue';
 
     export default {
         components:{
             'cell': Cell,
-            'row': Row
         },
         props:{
            indexedHeaderRows: {type: Array, required: false, default: [] },

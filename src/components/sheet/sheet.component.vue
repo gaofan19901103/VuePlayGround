@@ -3,15 +3,15 @@
     <div class="v-sheet-container" tabindex="0"  @mousedown="onMouseDown($event)"  @keydown="onKeyDown($event)" @dblclick="onDblClick">
         
         <div class="v-sheet-header" ref="sheetHeader">
-            <grid-header :columns="columns" :indexed-header-rows="headerRows" :selections="selections"></grid-header>
+            <grid-header :columns="metaColumns" :indexed-header-rows="headerRows" :selections="selections"></grid-header>
         </div>
 
         <div class="v-sheet" tabindex="0" ref="sheet"
             @scroll="onScroll($event)" 
             @contextmenu.prevent="onMenu">
-            <freeze-grid :virtual-list="virtualScrollList" :columns="freezeCols" :grid-top="offsetTop" :indexed-cols="columns" :indexed-rows="rows" :selections="selections"></freeze-grid>  
-            <grid :rows="virtualScrollList" :columns="bodyCols" :offset-top="offsetTop"></grid>    
-            <selection-area :selections="selections" :indexed-rows="rows" :indexed-cols="columns" :header-rows="headerRows"></selection-area>
+            <!-- <freeze-grid :rows="virtualScrollList" :columns="freezeCols" :offset-top="offsetTop" :indexed-cols="metaColumns" :indexed-rows="metaRows" :header-rows="headerRows" :selections="selections" :freeze-col-count="freezeColCount"></freeze-grid>   -->
+            <grid :rows="virtualScrollList" :meta-columns="metaColumns" :offset-top="offsetTop"></grid>    
+            <selection-area :selections="selections" :meta-rows="metaRows" :meta-columns="metaColumns" :header-rows="headerRows" :freeze-col-count="freezeColCount"></selection-area>
             <div class="vault" :style="{ height: (rowCount - headerRowCount) * rowHeight + 'px' }"></div>
             <cell-editor v-if="showCellEditor" :combo="cellEditCombo" v-on:hide-cell-editor="setValue"></cell-editor>
         </div>
@@ -47,11 +47,10 @@
             
         },
         props:{
-            rows: {type: Array, required: false, default: []},
-            columns: {type: Array, required: false, default: []},
+            metaRows: {type: Array, required: false, default: []},
+            metaColumns: {type: Array, required: false, default: []},
             headerColumns: {type: Array, required: false, default: null }, //GF:Review - for merge cell header.
-            rowHeight: {type: Number, required: false, default: 20 }, //GF:Review - now I'm assuming all rows have same height in sheet-body, possible to change, but you need to change how you scroll and the virtual list calculation.
-            columnWidth: {type: Number, required: false, default: 90 }
+            rowHeight: {type: Number, required: false, default: 20 } //GF:Review - now I'm assuming all rows have same height in sheet-body, possible to change, but you need to change how you scroll and the virtual list calculation.
         },
         data:function(){
             return{
@@ -84,28 +83,28 @@
         },
         computed:{         
             colCount: function(){ 
-                return this.columns.length;
+                return this.metaColumns.length;
             },
             rowCount: function(){
-                return this.rows.length;
+                return this.metaRows.length;
             },  
             headerRowCount: function(){
-                return this.rows.findIndex(x => !x.isHeader);
+                return this.metaRows.findIndex(x => !x.isHeader);
             },
             freezeColCount: function(){
-                return this.columns.findIndex(x => !x.freeze);
+                return this.metaColumns.findIndex(x => !x.freeze);
             },
             headerRows: function(){
-                return this.rows.slice(0, this.headerRowCount);
+                return this.metaRows.slice(0, this.headerRowCount);
             },
             bodyRows: function(){
-                return this.rows.slice(this.headerRowCount, this.rowCount);
+                return this.metaRows.slice(this.headerRowCount, this.rowCount);
             },
             freezeCols: function(){
-                return this.columns.slice(0, this.freezeColCount);
+                return this.metaColumns.slice(0, this.freezeColCount);
             },
             bodyCols: function(){
-                return this.columns.slice(this.freezeColCount, this.colCount);
+                return this.metaColumns.slice(this.freezeColCount, this.colCount);
             },
             virtualScrollList: function(){ //depends on bodyRows, lastVirtualPostion, sheetRect, rowHeight, virtualBuffer.
                 if(!this.sheetRect) return[];
@@ -132,7 +131,7 @@
         methods:{
            scrollToCell(rowIndex, colIndex){
                //GF:Review - this never used, but it will be useful.
-               this.sheetEl.scrollTo(this.columns[colIndex].x, this.rows[rowIndex].y); 
+               this.sheetEl.scrollTo(this.metaColumns[colIndex].x, this.metaRows[rowIndex].y); 
            }, 
            copyCurrentSelection(){
                 let timerBefore = performance.now();
@@ -143,7 +142,7 @@
                 let brX = Math.max(Number(this.selections[this.currentSelectionIndex].start.col), Number(this.selections[this.currentSelectionIndex].end.col));
                 let brY = Math.max(Number(this.selections[this.currentSelectionIndex].start.row), Number(this.selections[this.currentSelectionIndex].end.row));
 
-                let valueMatrix = this.rows.map(x => Object.keys(x.cells).map(y => x.cells[y].value));
+                let valueMatrix = this.metaRows.map(x => Object.keys(x.cells).map(y => x.cells[y].value));
                 valueMatrix = valueMatrix.slice(tlY, brY + 1);
                 valueMatrix = valueMatrix.map(x => x.slice(tlX, brX + 1));
 
@@ -154,6 +153,7 @@
 
                 console.info(`copy used ${Math.ceil(timerAfter - timerBefore)} milliseconds`);
            },   
+           //GF:Review - ToDo: change this one!!!
            moveSelection: function(rowIncrement, colIncrement, scroll = true, check = false){
                 this.selections[this.currentSelectionIndex].end.row = this.selections[this.currentSelectionIndex].end.row + rowIncrement;
                 this.selections[this.currentSelectionIndex].end.col = this.selections[this.currentSelectionIndex].end.col + colIncrement;
@@ -197,35 +197,41 @@
 
                 //if(scroll) this.sheetEl.scrollBy(colIncrement * this.columnWidth, rowIncrement * this.rowHeight);
            },
-           expandSelection: function(rowIncrement, colIncrement, scroll = true, check = false){              
-                this.selections[this.currentSelectionIndex].end.row = this.selections[this.currentSelectionIndex].end.row + rowIncrement;
-                this.selections[this.currentSelectionIndex].end.col = this.selections[this.currentSelectionIndex].end.col + colIncrement;
+           expandSelection: function(rowIncrement, colIncrement, scroll = true, check = false){     
+                let incrementedRow = this.selections[this.currentSelectionIndex].end.row + rowIncrement;
+                let incrementedCol = this.selections[this.currentSelectionIndex].end.col + colIncrement;
+                this.selections[this.currentSelectionIndex].end.row = incrementedRow;
+                this.selections[this.currentSelectionIndex].end.col = incrementedCol;
                 if(scroll){
                    // this.lastVirtualPosition = this.lastVirtualPosition + (rowIncrement * this.rowHeight); 
                     if(check){
                         if(!this.isCellInView(this.selections[this.currentSelectionIndex].end.row, this.selections[this.currentSelectionIndex].end.col)){
                             this.lastVirtualPosition = this.lastVirtualPosition + (rowIncrement * this.rowHeight); 
-                            this.sheetEl.scrollBy(colIncrement * this.columnWidth, rowIncrement * this.rowHeight);
+                            let verticalScroll = colIncrement * (this.metaColumns[incrementedCol] && this.metaColumns[incrementedCol].width || 0);
+                            let horizontalScroll = rowIncrement * this.rowHeight;
+                            this.sheetEl.scrollBy(verticalScroll, horizontalScroll);
                         }
                     }
                     else{
                         this.lastVirtualPosition = this.lastVirtualPosition + (rowIncrement * this.rowHeight); 
-                        this.sheetEl.scrollBy(colIncrement * this.columnWidth, rowIncrement * this.rowHeight);
+                        let verticalScroll = colIncrement * (this.metaColumns[incrementedCol] && this.metaColumns[incrementedCol].width || 0);
+                        let horizontalScroll = rowIncrement * this.rowHeight;
+                        this.sheetEl.scrollBy(verticalScroll, horizontalScroll);
                     }
                 }                                                          
                 
-                if(this.selections[this.currentSelectionIndex].end.row < 0) {
+                if(incrementedRow < 0) {
                     this.selections[this.currentSelectionIndex].end.row++;
                     this.lastVirtualPosition = this.lastVirtualPosition + this.rowHeight; 
                 }
-                if(this.selections[this.currentSelectionIndex].end.row > this.rowCount - 1){
+                if(incrementedRow > this.rowCount - 1){
                     this.selections[this.currentSelectionIndex].end.row--;
                     this.lastVirtualPosition = this.lastVirtualPosition - this.rowHeight; 
                 } 
-                if(this.selections[this.currentSelectionIndex].end.col < 0) {
+                if(incrementedCol < 0) {
                     this.selections[this.currentSelectionIndex].end.col++;
                 }
-                if(this.selections[this.currentSelectionIndex].end.col > this.colCount - 1){
+                if(incrementedCol > this.colCount - 1){
                     this.selections[this.currentSelectionIndex].end.col--;
                 } 
 
@@ -296,7 +302,7 @@
                 this.showCellEditor = false;
             },
             setValue: function(valueObj){
-                this.rows[valueObj.row].cells[valueObj.col].value = valueObj.newValue;
+                this.metaRows[valueObj.row].cells[valueObj.col].value = valueObj.newValue;
                 this.$root.$emit('sheet-data-changed', 'input sheet', [valueObj]);
             },
 
@@ -314,6 +320,7 @@
               }
            },
            onResize: function(){
+               //GF:Review - there is one pending thing I need to do - scroll to bottom and resize.
                console.debug('the v-sheet-vessel resized');
                this.sheetRect = this.$refs.sheet.getBoundingClientRect();
            },  
@@ -333,6 +340,7 @@
                 }
 
                 if (event.ctrlKey  &&  event.key === "a") { 
+                    //GF:Review - ToDo: select all then use arrow key, fix it, use scroll to view.
                     this.currentSelectionIndex = 0;
                     this.selections.splice(1);
                     this.selections[0].start.row = 0;
@@ -534,13 +542,13 @@
                 this.cellEditCombo = {
                     row: row,
                     col: col,
-                    cell: this.rows[row].cells[col],
-                    value: this.rows[row].cells[col].value,
+                    cell: this.metaRows[row].cells[col],
+                    value: this.metaRows[row].cells[col].value,
                     style:{
-                        top: (this.rows[row].cells[col].y - 20) + 'px',
-                        left: this.rows[row].cells[col].x + 'px',
+                        top: (this.metaRows[row].cells[col].y - 20) + 'px',
+                        left: this.metaRows[row].cells[col].x + 'px',
                         height: this.rowHeight + 'px',
-                        width: this.columns[col].width + 'px'
+                        width: this.metaColumns[col].width + 'px'
                     }
                 };
             }     
@@ -580,7 +588,7 @@
                 --sheet-header-height: 0px;
 
                 background-color: var(--sheet-background-color);
-                width: calc(100% - var(--sheet-scroller-size)); // GF:Reivew - if there is not enough rows to show a scroller, the deduction is not needed.
+                width: calc(100% - var(--sheet-scroller-size)); // GF:Reivew - if there is not enough metaRows to show a scroller, the deduction is not needed.
                 height: 20px;  // GF:Review: should be dynamic, variable.
                 overflow: auto;
 

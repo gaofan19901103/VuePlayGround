@@ -25,13 +25,8 @@ window.myVue = new Vue({
   el: '#app',
   data:{
     sheetRows: convertedRows,
-    sheetCols: convertedCols
-  },
-  methods:{
-    xxx: function(){
-
-      document.querySelector('.v-sheet').focus();
-    }
+    sheetCols: convertedCols,
+    rowHeight: 20
   }
 });
 
