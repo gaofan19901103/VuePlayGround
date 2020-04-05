@@ -8,8 +8,15 @@
 
 <script>
     export default {
+        mounted: function(){
+            //GF:Review - one time set up, do it here, would this help vue to accelerate Recalculate styles.
+            let lastHeaderRow = this.headerRows[this.headerRows.length - 1];
+            let offSet = (lastHeaderRow.y + lastHeaderRow.height) * -1;
+            this.$el.style.setProperty('--offSetTop', offSet + 'px');
+        },
         props:{
            selections: { type: Array, required: false, default: [] },
+           headerRows: { type: Array, required: false, default: [] },
            indexedRows: { type: Array, required: false, default: [] },
            indexedCols: { type: Array, required: false, default: [] },
 
@@ -63,12 +70,13 @@
 <style lang="less">
 .selection-area-root{
     //GF:Review - suppose to be this way, for simpliciy, use fixed for now (below)
-    // position: absolute;
-    // top: -20px; 
+    --offSetTop: 0px;
+     position: absolute;
+     top: var(--offSetTop); 
 
-    position: fixed; //GF:Review - todo: I think absolute is better, but we need to set the top dynamically base on the height.
-    top: 0;  
-    left: 0;
+    // position: fixed; //GF:Review - todo: I think absolute is better, but we need to set the top dynamically base on the height.
+    // top: 0;  
+    // left: 0; //this fixed has a stacking order problem.
 
     .selection-area{
         --selection-area-color: rgba(255,99,88,0.25);

@@ -11,7 +11,7 @@
             @contextmenu.prevent="onMenu">
             <freeze-grid :virtual-list="virtualList" :columns="freezeCols" :grid-top="gridTop" :indexed-cols="columns" :indexed-rows="rows" :selections="selections"></freeze-grid>  
             <grid :virtual-list="virtualList" :columns="bodyCols" :grid-top="gridTop"></grid>    
-            <selection-area :selections="selections" :indexed-rows="rows" :indexed-cols="columns"></selection-area>
+            <selection-area :selections="selections" :indexed-rows="rows" :indexed-cols="columns" :header-rows="headerRows"></selection-area>
             <div class="vault" :style="{ height: (rowCount - headerRowCount) * rowHeight + 'px' }"></div>
             <cell-editor v-if="showCellEditor" :combo="cellEditCombo" v-on:hide-cell-editor="setValue"></cell-editor>
         </div>
