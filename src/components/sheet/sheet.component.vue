@@ -24,7 +24,6 @@
     import Grid from './grid.component.vue';
     import GridHeader from './grid-header.component.vue';
     import SelectionArea from './selection-area.component.vue';
-    import FreezeGrid from './grid-freeze.component.vue';
     import CellEditor from './cell-editor.component.vue';
 
     export default {
@@ -32,7 +31,6 @@
             grid: Grid,
             selectionArea: SelectionArea,
             gridHeader: GridHeader,
-            freezeGrid: FreezeGrid,
             cellEditor: CellEditor
         },
         created: function(){
