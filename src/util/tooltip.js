@@ -1,8 +1,9 @@
 import Vue from 'vue';
 import tooltipComponent from '../components/tooltip/tooltip.component.vue';
 
+window.Portal.Utils.Tooltip = {};
 
-Portal.Utils.getTooltipDirection = function (target, tooltipBox) {
+Portal.Utils.Tooltip.getTooltipDirection = function (target, tooltipBox) {
     //constants
     const _arrowSize = 8;
     const _arrowMargin = 2;
@@ -113,7 +114,7 @@ Portal.Utils.createTooltip = function (target, orientation, componentProps) {
     tooltipBox = instance.$mount().$el;
     tooltipBox = document.body.appendChild(tooltipBox);
 
-    let direction = window.Portal.Utils.getTooltipDirection(target, tooltipBox);
+    let direction = window.Portal.Utils.Tooltip.getTooltipDirection(target, tooltipBox);
 
     if (direction[orientation] && direction[orientation].valid) {
         tooltipBox.style.top = direction[orientation].top + 'px';

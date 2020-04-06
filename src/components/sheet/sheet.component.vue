@@ -141,7 +141,7 @@
                 valueMatrix = valueMatrix.map(x => x.slice(tlX, brX + 1));
 
                 let content = this.buildCopyContent(valueMatrix);
-                Portal.Utils.copyToClipboard(content);
+                Portal.Utils.Sheet.copyToClipboard(content);
 
                 let timerAfter = performance.now();
 
@@ -405,7 +405,7 @@
                     this.currentEqurant = 4;
                 }
                 else{
-                    this.currentEqurant = Portal.Utils.getMouseEqurant(e.clientX, e.clientY, this.sheetRect);
+                    this.currentEqurant = Portal.Utils.Sheet.getMouseEqurant(e.clientX, e.clientY, this.sheetRect);
                 }       
 
                 console.debug('current equrant: ',  this.currentEqurant);

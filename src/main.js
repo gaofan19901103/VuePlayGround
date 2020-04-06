@@ -1,5 +1,4 @@
-require('./util/portal.js');
-require('./util/tooltip.js');
+require('./util/util.js');
 
 import Vue from 'vue';
 import App from './components/App.vue';
