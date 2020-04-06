@@ -128,13 +128,4 @@
         }
     }
 
-    .v-grid-header{
-        .grid-cell{ 
-            text-align: center;
-            line-height: var(--row-height);
-            border-top: 0.25px solid var(--grid-border-color);
-            border-left: 0.25px solid var(--grid-border-color);            
-        }
-    }
-
 </style>

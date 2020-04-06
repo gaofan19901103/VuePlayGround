@@ -2,11 +2,11 @@
   <div class="v-sheet-vessel" v-on-resize="onResize">
     <div class="v-sheet-container" tabindex="0"  @mousedown="onMouseDown($event)"  @keydown="onKeyDown($event)" @dblclick="onDblClick">
         
-        <div class="v-sheet-header" ref="sheetHeader">
-            <grid-header :columns="metaColumns" :indexed-header-rows="headerRows" :selections="selections"></grid-header>
+        <div class="v-sheet-header" ref="sheetHeader" v-if="!!headerRowCount">
+            <grid-header :meta-columns="metaColumns" :meta-rows="metaRows" :header-rows="headerRows" :selections="selections" :header-row-count="headerRowCount" :freeze-col-count="freezeColCount"></grid-header>
         </div>
 
-        <div class="v-sheet" tabindex="0" ref="sheet"
+        <div class="v-sheet" ref="sheet"
             @scroll="onScroll($event)" 
             @contextmenu.prevent="onMenu">
             <!-- <freeze-grid :rows="virtualScrollList" :columns="freezeCols" :offset-top="offsetTop" :indexed-cols="metaColumns" :indexed-rows="metaRows" :header-rows="headerRows" :selections="selections" :freeze-col-count="freezeColCount"></freeze-grid>   -->
@@ -128,11 +128,7 @@
         watch:{
            //GF:Review - I'm thinking to move some of the calculations here to reduce the vue re-activity chain, would it be a good idea ?
         },
-        methods:{
-           scrollToCell(rowIndex, colIndex){
-               //GF:Review - this never used, but it will be useful.
-               this.sheetEl.scrollTo(this.metaColumns[colIndex].x, this.metaRows[rowIndex].y); 
-           }, 
+        methods:{ 
            copyCurrentSelection(){
                 let timerBefore = performance.now();
 
@@ -153,51 +149,7 @@
 
                 console.info(`copy used ${Math.ceil(timerAfter - timerBefore)} milliseconds`);
            },   
-           //GF:Review - ToDo: change this one!!!
-           moveSelection: function(rowIncrement, colIncrement, scroll = true, check = false){
-                this.selections[this.currentSelectionIndex].end.row = this.selections[this.currentSelectionIndex].end.row + rowIncrement;
-                this.selections[this.currentSelectionIndex].end.col = this.selections[this.currentSelectionIndex].end.col + colIncrement;
-
-
-                if(scroll){
-                // this.lastVirtualPosition = this.lastVirtualPosition + (rowIncrement * this.rowHeight); 
-                    if(check){
-                        if(!this.isCellInView(this.selections[this.currentSelectionIndex].end.row, this.selections[this.currentSelectionIndex].end.col)){
-                            this.lastVirtualPosition = this.lastVirtualPosition + (rowIncrement * this.rowHeight); 
-                            this.sheetEl.scrollBy(colIncrement * this.columnWidth, rowIncrement * this.rowHeight);
-                        }
-                    }
-
-                    else{
-                        this.lastVirtualPosition = this.lastVirtualPosition + (rowIncrement * this.rowHeight); 
-                        this.sheetEl.scrollBy(colIncrement * this.columnWidth, rowIncrement * this.rowHeight);
-                    }
-                } 
-                
-
-                                                                        
-                if(this.selections[this.currentSelectionIndex].end.row < 0) {
-                    this.selections[this.currentSelectionIndex].end.row++;
-                    this.lastVirtualPosition = this.lastVirtualPosition + this.rowHeight; 
-                }
-                if(this.selections[this.currentSelectionIndex].end.row > this.rowCount - 1){
-                    this.selections[this.currentSelectionIndex].end.row--;
-                    this.lastVirtualPosition = this.lastVirtualPosition - this.rowHeight; 
-                } 
-                if(this.selections[this.currentSelectionIndex].end.col < 0) {
-                    this.selections[this.currentSelectionIndex].end.col++;
-                }
-                if(this.selections[this.currentSelectionIndex].end.col > this.colCount - 1){
-                    this.selections[this.currentSelectionIndex].end.col--;
-                } 
-
-                this.selections[this.currentSelectionIndex].start.row = this.selections[this.currentSelectionIndex].end.row;
-                this.selections[this.currentSelectionIndex].start.col = this.selections[this.currentSelectionIndex].end.col;
-                
-
-                //if(scroll) this.sheetEl.scrollBy(colIncrement * this.columnWidth, rowIncrement * this.rowHeight);
-           },
-           expandSelection: function(rowIncrement, colIncrement, scroll = true, check = false){     
+           expandSelection: function(rowIncrement, colIncrement, moveCell = false, scroll = true, check = false){     
                 let incrementedRow = this.selections[this.currentSelectionIndex].end.row + rowIncrement;
                 let incrementedCol = this.selections[this.currentSelectionIndex].end.col + colIncrement;
                 this.selections[this.currentSelectionIndex].end.row = incrementedRow;
@@ -235,6 +187,11 @@
                     this.selections[this.currentSelectionIndex].end.col--;
                 } 
 
+                if(moveCell){
+                    this.selections[this.currentSelectionIndex].start.row = this.selections[this.currentSelectionIndex].end.row;
+                    this.selections[this.currentSelectionIndex].start.col = this.selections[this.currentSelectionIndex].end.col;
+                }
+
                 // if(scroll){
                 //     this.sheetEl.scrollBy(colIncrement * this.columnWidth, rowIncrement * this.rowHeight);
                 // //     let x = () => { this.sheetEl.scrollBy(colIncrement * this.columnWidth, rowIncrement * this.rowHeight); }
@@ -262,7 +219,12 @@
 
                 console.debug('raf loop canceled.');
            },
+           scrollToCell(rowIndex, colIndex){
+               //GF:Review - this never used, but it will be useful.
+               this.sheetEl.scrollTo(this.metaColumns[colIndex].x, this.metaRows[rowIndex].y); 
+           },
            isCellInView: function(row, column){
+               //GF:Review: there is an issue here with keyboard arrow keys, moving from normal to header then continue naviate with right or left key.
                 let nextCell = this.sheetEl.querySelector(`[data-row="${row}"][data-col="${column}"]`);
 
                 if(this.startCell && this.startCell.dataset.header && (!nextCell || !nextCell.dataset.header) && !this.isRAFLooping){
@@ -353,41 +315,17 @@
                     this.showCellEditor = false;
 
                     if(event.key == 'ArrowUp'){
-                        if(event.shiftKey){
-                            this.render = () => { this.expandSelection(-1, 0, true, true); };
-                        }  
-                        else{
-                            this.render = () => { this.moveSelection(-1, 0, true, true); };
-                        }  
+                        this.render = () => { this.expandSelection(-1, 0, !event.shiftKey, true, true); };
                     } 
                     else if(event.key == 'ArrowDown'){
-                        if(event.shiftKey){
-                            this.render = () => { this.expandSelection(1, 0, true, true); };
-                        }  
-                        else{
-                            this.render = () => { this.moveSelection(1, 0, true, true); };
-                        }
+                        this.render = () => { this.expandSelection(1, 0, !event.shiftKey, true, true); };
                     } 
                     else if(event.key == 'ArrowLeft'){
-                        if(event.shiftKey){
-                            this.render = () => { this.expandSelection(0, -1, true, true); };
-                        }  
-                        else{
-                            this.render = () => { this.moveSelection(0, -1, true, true); };
-                        } 
+                        this.render = () => { this.expandSelection(0, -1, !event.shiftKey, true, true); };
                     } 
                     else if(event.key == 'ArrowRight'){
-                        if(event.shiftKey){
-                            this.render = () => { this.expandSelection(0, 1, true, true); };
-                        }  
-                        else{
-                            this.render = () => { this.moveSelection(0, 1, true, true); };
-                        } 
+                        this.render = () => { this.expandSelection(0, 1, !event.shiftKey, true, true); };
                     } 
-                    else{
-                        throw 'key not found...'; 
-                    }
-
 
                     if(event.repeat && !this.isRAFLooping){
                         document.onkeyup = this.onKeyUp;
@@ -599,7 +537,6 @@
 
             .v-sheet{
                 display: flex;
-                outline: none;
                 position: relative;
                 height: calc(100% - 20px); 
                 width: 100%;
