@@ -520,7 +520,7 @@
             color: var(--sheet-font-color);
 
             .v-sheet-header{
-                --sheet-background-color: aquamarine;
+                --sheet-background-color: green;
                 --sheet-header-height: 0px;
 
                 background-color: var(--sheet-background-color);
@@ -530,6 +530,7 @@
 
                 &::-webkit-scrollbar {
                     height: 0px;
+                    width: 0px;
                 }
             }
 
