@@ -1,6 +1,8 @@
 require('./util/util.js');
 
 import Vue from 'vue';
+import VueRouter from 'vue-router';
+
 import App from './components/App.vue';
 import Sheet from './components/sheet/sheet.component.vue';
 
@@ -20,8 +22,24 @@ import {convertColumns, convertRows } from './services/sheet-data.service.js';
 let convertedCols = convertColumns(FraMeta);
 let convertedRows = convertRows(FraMeta, convertedCols);
 
+Vue.use(VueRouter);
+
+const Foo = { template: '<div>foo</div>' }
+const Bar = { template: '<div>bar</div>' }
+
+const routes = [
+  { path: '/foo', component: Foo },
+  { path: '/bar', component: Bar },
+  { path: '/ooo', component: Sheet, props: { metaRows: convertedRows, metaColumns: convertedCols, rowHeight: 20  } }
+];
+
+const router = new VueRouter({
+  routes // short for `routes: routes`
+});
+
 window.myVue = new Vue({
   el: '#app',
+  router: router,
   data:{
     sheetRows: convertedRows,
     sheetCols: convertedCols,
@@ -36,50 +54,50 @@ window.myVue.$on('sheet-data-changed', function(id, changes){
 
 
 //--------------------------------------------------------------------------------------------------------------
-var testEl = document.getElementById("main-container");
-var dragEl = document.getElementById("drag");
+// var testEl = document.getElementById("main-container");
+// var dragEl = document.getElementById("drag");
 
-dragElement(dragEl);
+// dragElement(dragEl);
 
-function dragElement(elmnt) {
-  var pos1 = 0, pos2 = 0, pos3 = 0, pos4 = 0;
+// function dragElement(elmnt) {
+//   var pos1 = 0, pos2 = 0, pos3 = 0, pos4 = 0;
 
-  elmnt.onmousedown = dragMouseDown;
+//   elmnt.onmousedown = dragMouseDown;
   
 
-  function dragMouseDown(e) {
-    e = e || window.event;
-    e.preventDefault();
-    // get the mouse cursor position at startup:
-    pos3 = e.clientX;
-    pos4 = e.clientY;
-    document.onmouseup = closeDragElement;
-    // call a function whenever the cursor moves:
-    document.onmousemove = elementDrag;
-  }
+//   function dragMouseDown(e) {
+//     e = e || window.event;
+//     e.preventDefault();
+//     // get the mouse cursor position at startup:
+//     pos3 = e.clientX;
+//     pos4 = e.clientY;
+//     document.onmouseup = closeDragElement;
+//     // call a function whenever the cursor moves:
+//     document.onmousemove = elementDrag;
+//   }
 
-  function elementDrag(e) {
-    e = e || window.event;
-    e.preventDefault();
-    // calculate the new cursor position:
-    pos1 = e.clientX - pos3;
-    pos2 = e.clientY - pos4;
-    pos3 = e.clientX;
-    pos4 = e.clientY;
-    // set the element's new position:
-    requestAnimationFrame(function(){
-      testEl.style.width = testEl.getBoundingClientRect().width + pos1 + 'px';
-      testEl.style.height = testEl.getBoundingClientRect().height + pos2 + 'px';
-    });
+//   function elementDrag(e) {
+//     e = e || window.event;
+//     e.preventDefault();
+//     // calculate the new cursor position:
+//     pos1 = e.clientX - pos3;
+//     pos2 = e.clientY - pos4;
+//     pos3 = e.clientX;
+//     pos4 = e.clientY;
+//     // set the element's new position:
+//     requestAnimationFrame(function(){
+//       testEl.style.width = testEl.getBoundingClientRect().width + pos1 + 'px';
+//       testEl.style.height = testEl.getBoundingClientRect().height + pos2 + 'px';
+//     });
 
-    // elmnt.style.top = (elmnt.offsetTop - pos2) + "px";
-    // elmnt.style.left = (elmnt.offsetLeft - pos1) + "px";
-  }
+//     // elmnt.style.top = (elmnt.offsetTop - pos2) + "px";
+//     // elmnt.style.left = (elmnt.offsetLeft - pos1) + "px";
+//   }
 
-  function closeDragElement() {
-    // stop moving when mouse button is released:
-    document.onmouseup = null;
-    document.onmousemove = null;
-  }
-}
+//   function closeDragElement() {
+//     // stop moving when mouse button is released:
+//     document.onmouseup = null;
+//     document.onmousemove = null;
+//   }
+// }
 //--------------------------------------------------------------------------------------------------------------
