@@ -10,14 +10,14 @@
         <p>
             <ul>
                 <li>1. npm install</li>
-                <li>2. npm run serve, and go to <a href="localhost:8080">localhost:8080</a></li>
+                <li>2. npm run serve, and go to <a href="localhost:8080">localhost:8080</a>, changes are hot loaded.</li>
             </ul>
         </p>
         <p>
             <ul>
-                <li>To build: npm run build.</li>
-                <li>To run tests: npm run test.</li>
-                <li>To run as a serve: build first and run 'node server.js'</li>
+                <li>To build: <b>npm run build.</b></li>
+                <li>To run tests: <b>npm run test.</b></li>
+                <li>To run as a serve: <b>build first and run 'node server.js' then go to <a href="localhost:3000">[your machine name]:3000</a></b></li>
             </ul>
         </p>
    </div>

@@ -1,6 +1,6 @@
 <template>
    <div style="height: 307px; width: 600px; margin-left: 200px; margin-top: 200px; position: relative;">             
-        <div style="height: 8px; width: 20px; position:absolute; top: 100%; left: 100%; cursor: nwse-resize;" id="drag">drag me</div>
+        <div style="height: 40px; width: 40px; position:absolute; top: 100%; left: 100%; cursor: nwse-resize;" id="drag">drag me</div>
         <sheet :meta-rows="metaRows" :meta-columns="metaColumns" :row-height="rowHeight"></sheet>
     </div>
 </template>

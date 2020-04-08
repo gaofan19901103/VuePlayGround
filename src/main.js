@@ -3,7 +3,6 @@ require('./util/util.js');
 import Vue from 'vue';
 import VueRouter from 'vue-router';
 
-import App from './components/App.vue';
 import Sheet from './components/sheet/sheet.component.vue';
 
 import { FraMeta, FraTemplate } from './metaData.js';
@@ -14,9 +13,8 @@ import AppInstruction from './components/readme/app-instruction.component.vue';
 import SheetReadme from './components/readme/sheet-readme.component.vue';
 import SheetContainer from './components/readme/sheet-container.component.vue';
 
-Vue.component('app', App);
-Vue.component('sheet', Sheet);
 
+Vue.component('sheet', Sheet);
 Vue.directive('tooltip',tooltip);
 Vue.directive('on-resize',onResize);
 

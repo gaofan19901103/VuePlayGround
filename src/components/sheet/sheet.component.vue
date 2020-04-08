@@ -223,13 +223,14 @@
            },
            isCellInView: function(row, column){
                //GF:Review: there is an issue here with keyboard arrow keys, moving from normal to header then continue naviate with right or left key.
+               //GF:Review: there is an issue, start cell is normal but scrolling still tiggers on freeze cells.
                 let nextCell = this.sheetEl.querySelector(`[data-row="${row}"][data-col="${column}"]`);
 
                 if(this.startCell && this.startCell.dataset.header && (!nextCell || !nextCell.dataset.header) && !this.isRAFLooping){
                     this.sheetEl.scrollTo(this.sheetEl.scrollLeft, 0);
                     //GF:Review: later it scrolled by 20 again, need to prevent that... find a good way.
                 }
-                else if(this.startCell && this.startCell.dataset.freeze && !nextCell.dataset.freeze && !this.isRAFLooping){
+                else if(this.startCell  && this.startCell.dataset.freeze && nextCell && !nextCell.dataset.freeze && !this.isRAFLooping){
                     this.sheetEl.scrollTo(0, this.sheetEl.scrollTop);
                 }
                 
