@@ -4,20 +4,14 @@
   </head>
   <body>
     <div id="app" >
-      <div>
-        <h1>1111<router-link to="/foo">Go to Foo</router-link></h1>
-        <h1>2222<router-link to="/bar">Go to Bar</router-link></h1>
-        <h1>3333<router-link to="/ooo">Go to ss</router-link></h1>
-        <h1 v-tooltip="'11111111111134'">4444</h1>
-      </div>
-      
-      <div style="height: 307px; width: 600px; margin-left: 200px; position: relative;" id="main-container">
-        <router-view></router-view>
-        <!-- <div style="height: 8px; width: 20px; position:absolute; top: 100%; left: 100%; cursor: nwse-resize;" id="drag">drag me</div>
-        <sheet :meta-rows="sheetRows" :meta-columns="sheetCols" :row-height="rowHeight"></sheet> -->
-      </div>
-
-      <div style="height: 1500px; width: 500px; background-color: balck;"></div>
+      <aside>
+        <router-link to="/" tag="nav">instruction</router-link>
+        <router-link to="/readme" tag="nav">read me</router-link>
+        <router-link to="/sheet" tag="nav">sheet component</router-link>
+      </aside>
+      <main>
+          <router-view></router-view>
+      </main> 
     </div>
   </body>
 </html>
