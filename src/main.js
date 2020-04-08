@@ -36,9 +36,7 @@ const routes = [
   { path: '/sheet', component: SheetContainer, props: { metaRows: convertedRows, metaColumns: convertedCols, rowHeight: 20  } }
 ];
 
-const router = new VueRouter({
-  routes // short for `routes: routes`
-});
+const router = new VueRouter({ routes });
 
 window.myVue = new Vue({
   el: '#app',
@@ -55,7 +53,3 @@ window.myVue.$on('sheet-data-changed', function(id, changes){
   //async tasks  GF:Review
 });
 
-
-//--------------------------------------------------------------------------------------------------------------
-
-//--------------------------------------------------------------------------------------------------------------
