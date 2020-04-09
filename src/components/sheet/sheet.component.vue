@@ -8,8 +8,7 @@
 
         <div class="v-sheet" ref="sheet"
             @scroll="onScroll($event)" 
-            @contextmenu.prevent="onMenu">
-            <!-- <freeze-grid :rows="virtualScrollList" :columns="freezeCols" :offset-top="offsetTop" :indexed-cols="metaColumns" :indexed-rows="metaRows" :header-rows="headerRows" :selections="selections" :freeze-col-count="freezeColCount"></freeze-grid>   -->
+            @contextmenu.prevent="onMenu">          
             <grid :rows="virtualScrollList" :meta-columns="metaColumns" :offset-top="offsetTop"></grid>    
             <selection-area :selections="selections" :meta-rows="metaRows" :meta-columns="metaColumns" :header-rows="headerRows" :freeze-col-count="freezeColCount"></selection-area>
             <div class="vault" :style="{ height: (rowCount - headerRowCount) * rowHeight + 'px' }"></div>

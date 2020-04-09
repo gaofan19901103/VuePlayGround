@@ -4,14 +4,17 @@
   </head>
   <body>
     <div id="app" >
-      <aside>
-        <router-link to="/" tag="nav">instruction</router-link>
-        <router-link to="/readme" tag="nav">read me</router-link>
-        <router-link to="/sheet" tag="nav">sheet component</router-link>
-      </aside>
+      <header></header>
       <main>
-          <router-view></router-view>
-      </main> 
+          <aside>
+              <router-link to="/" tag="nav">instruction</router-link>
+              <router-link to="/readme" tag="nav">read me</router-link>
+              <router-link to="/sheet" tag="nav">check the sheet</router-link>
+            </aside>
+            <section>
+                <router-view></router-view>
+            </section> 
+      </main>
     </div>
   </body>
 </html>
