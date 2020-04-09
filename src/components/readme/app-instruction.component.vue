@@ -3,8 +3,8 @@
        <h3>Instruction</h3>
        <p>where is the code:</p>
        <ul>
-           <li>svn: </li>
-           <li>bitbucket: </li>
+           <li>svn: <a href="http://buildserver/svn/Portal/Unified/branches/Vue_sheet">http://buildserver/svn/Portal/Unified/branches/Vue_sheet</a></li>
+           <li>bitbucket: <a href="https://bitbucket.org/Reset_GF/reset-portal-components/">https://bitbucket.org/Reset_GF/reset-portal-components/</a></li>
        </ul>
        <h3>To run</h3>
         <p>
